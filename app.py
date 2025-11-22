@@ -65,7 +65,7 @@ st.success("Welcome.You have full access to this app now")
 
 # Load image from repo
 img = Image.open("Gemini_Generated_Image_j18vq7j18vq7j18v.png")  # just the filename if in same folder
-st.image(img,caption = "Basit Pushoo - Developer", width=100)          # adjust size as needed
+st.image(img,caption = "Basit Pushoo - Developer", width=150)          # adjust size as needed
 
 
 
@@ -84,7 +84,7 @@ RECURRING_FILE = os.path.join(DATA_DIR,"recurring.xlsx")
 RECURRING_ID = "1Gti-tD9DlYpDqZUicvzmTBFKTYU-_NabM8i8etY0b4k"
 MAX_ITEMS = 50
 DEFAULT_GST = 5.0
-APP_TITLE = "💊 NEW PharmaWAYS — Challan Manager (BY BASIT PUSHOO)"
+APP_TITLE = "💊 NEW PharmaWAYS — Challan Manager"
 
 # ---------------- Dark theme CSS (modern) ----------------
 st.set_page_config(page_title="Pharma Challan Manager", layout="wide", initial_sidebar_state="auto")
