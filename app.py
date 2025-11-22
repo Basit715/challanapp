@@ -61,11 +61,11 @@ else:
     st.info("🔒 Please enter the password to access the app.")
     st.stop()
 st.success("Welcome.You have full access to this app now")
-uploaded_file = st.sidebar.file_uploader("Upload an image", type=["png","jpg","jpeg"])
-if uploaded_file:
-    image = Image.open(uploaded_file)
-    st.image(image, caption="Basit Pushoo - Developer", use_column_width=True)
 
+
+# Load image from repo
+img = Image.open("my_photo.jpg")  # just the filename if in same folder
+st.image(img,caption = "Basit Pushoo - Developer", width=100)          # adjust size as needed
 
 
 
