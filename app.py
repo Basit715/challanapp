@@ -69,6 +69,8 @@ MEDICINES_FILE = os.path.join(DATA_DIR, "medicines.xlsx")
 MEDICINE_ID = "1JeFEFSwd8P2Ekwq1xonc9ENLrR4MdmiujSMNhNgd8yc"
 DAYBOOK_FILE = os.path.join(DATA_DIR, "daybook.xlsx")
 DAYBOOK_ID = "1F4re8JIwfx8B_C9qhAjlhbfUcP6caiDZiM6i-LLc-_8"
+LEDGER_FILE = os.path.join(DATA_DIR, "ledger.xlsx")
+LEDGER_ID = "1zg8jEUH3wibNvS6BfH6Jh0kcikXbfVsRFWKl9ZDMlSk"
 MAX_ITEMS = 50
 DEFAULT_GST = 5.0
 APP_TITLE = "💊 NEW PharmaWAYS — Challan Manager (BY BASIT PUSHOO)"
@@ -183,6 +185,24 @@ def save_daybook(df):
         write_excel_to_drive(df,st.secrets['files']['DAYBOOK_ID'])
     except Exception as e:
         st.error(f"Error loading daybook {e}")
+
+# ---------------- Ledger Setup ----------------
+
+
+def load_ledger():
+    try:
+        df = read_excel_from_drive(LEDGER_ID)
+        return df.fillna("")
+    except:
+        return pd.DataFrame(columns=["entry_id","party","date","type","amount","balance","note"])
+
+def save_ledger(df):
+    try:
+        write_excel_to_drive(df, LEDGER_ID)
+    except Exception as e:
+        st.error(f"Error saving ledger: {e}")
+
+ledger_df = load_ledger()
 
 # ---------------- Calculations & PDF ----------------
 def compute_row_amount(qty, rate, discount_pct, gst_pct):
@@ -310,7 +330,8 @@ st.caption("whatsaApp: set default reciepeint phone (country code, no +).Optiona
 wa_default_number = st.text_input("Default whatsapp number e.g; 919541292214",value="",key="wa_default_number")
 
 # Tab order: Challans | Medicines | Reports | Day Book (user chose B)
-tab1, tab2, tab3, tab4, tab5,tab6 = st.tabs(["Challans", "Medicines (Inventory)", "Reports / Utilities", "Day Book","📈 Dashboard","💊 Advertisement"])
+tab1, tab2, tab3, tab4, tab5,tab6,tab7 = st.tabs(["Challans", "Medicines (Inventory)", "Reports / Utilities", "Day Book","📈 Dashboard","💊 Advertisement","LEDGER"]
+                                                )
 # ---------------- TAB: Medicines inventory ----------------
 with tab2:
     st.header("📦 Medicines Inventory (batch-level)")
@@ -505,6 +526,29 @@ with tab1:
                 # reload data
                 challans_df = load_challans()
                 med_df = load_medicines()
+                if party:
+    total_amount = sum(item['amount'] for item in new_items)
+
+    # Get last balance for party
+    if not ledger_df[ledger_df['party']==party].empty:
+        last_balance = float(ledger_df[ledger_df['party']==party]['balance'].iloc[-1])
+    else:
+        last_balance = 0.0
+
+    new_balance = last_balance + total_amount
+
+    new_entry = {
+        "entry_id": len(ledger_df)+1,
+        "party": party,
+        "date": date_val.strftime("%Y-%m-%d"),
+        "type": "Credit",
+        "amount": total_amount,
+        "balance": new_balance,
+        "note": f"Challan #{challan_no}"
+    }
+    ledger_df = pd.concat([ledger_df, pd.DataFrame([new_entry])], ignore_index=True)
+    save_ledger(ledger_df)
+    st.success(f"Ledger updated for {party}. New balance: ₹ {new_balance:.2f}")
                 try:
                     st.experimental_rerun()
                 except:
@@ -872,6 +916,44 @@ with tab6:
     # Download catalog
     st.download_button("📥 Download Catalog as CSV", med_catalog.to_csv(index=False), "medicines_catalog.csv")
 
+with tab7:
+    st.header("Party Ledger / Balances")
+
+    # Select party
+    parties = sorted(ledger_df['party'].dropna().unique().tolist())
+    selected_party = st.selectbox("Select Party", options=parties)
+
+    # Show party entries
+    party_entries = ledger_df[ledger_df['party']==selected_party]
+    if not party_entries.empty:
+        st.dataframe(party_entries[['date','type','amount','balance','note']].sort_values('date'))
+        st.write(f"**Current Balance:** ₹ {party_entries['balance'].iloc[-1]:.2f}")
+    else:
+        st.info("No ledger entries for this party yet.")
+
+    # Record Payment
+    st.subheader("Record Payment")
+    payment_party = st.selectbox("Select Party for Payment", options=parties, key="pay_party")
+    payment_date = st.date_input("Payment Date", value=date.today(), key="pay_date")
+    payment_amount = st.number_input("Payment Amount", min_value=0.0, value=0.0, key="pay_amount")
+    payment_note = st.text_input("Note / Reference", key="pay_note")
+
+    if st.button("Add Payment", key="btn_add_payment"):
+        last_balance = float(ledger_df[ledger_df['party']==payment_party]['balance'].iloc[-1])
+        new_balance = last_balance - payment_amount
+        new_entry = {
+            "entry_id": len(ledger_df)+1,
+            "party": payment_party,
+            "date": payment_date.strftime("%Y-%m-%d"),
+            "type": "Payment",
+            "amount": payment_amount,
+            "balance": new_balance,
+            "note": payment_note
+        }
+        ledger_df = pd.concat([ledger_df, pd.DataFrame([new_entry])], ignore_index=True)
+        save_ledger(ledger_df)
+        st.success(f"Payment recorded. New balance for {payment_party}: ₹ {new_balance:.2f}")
+        st.rerun()
 # ---------------- Save final state (ensure persisted) ----------------
 save_challans(challans_df)
 save_medicines(med_df)
