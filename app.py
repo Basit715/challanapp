@@ -1,5 +1,6 @@
 from google.oauth2 import service_account
 from googleapiclient.discovery import build
+from googleapiclient.http import MediaIoBaseUpload
 import io
 def gdrive_service():
     creds = service_account.Credentials.from_service_account_info(
@@ -24,7 +25,7 @@ def write_excel_to_drive(df,file_id):
     excel_buffer = io.BytesIO()
     df.to_excel(excel_buffer,index=False,engine="openpyxl")
     excel_buffer.seek(0)
-    media = MediaIoaBaseUpload(excel_buffer,mimetype = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+    media = MediaIoBaseUpload(excel_buffer,mimetype = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
     resumable = True
 
     service.files().update(
