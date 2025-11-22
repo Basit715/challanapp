@@ -1,4 +1,4 @@
-from google.oauth2 import service_account
+kfrom google.oauth2 import service_account
 from googleapiclient.discovery import build
 from googleapiclient.http import MediaIoBaseUpload
 import io
@@ -11,7 +11,7 @@ def gdrive_service():
     return build("drive","v3",credentials=creds)
 def read_excel_from_drive(file_id):
     service = gdrive_service()
-    request = service.files().get_media(fileId = file_id)
+    request = service.files().export(fileId = file_id)
     file_data = request.execute()
 
     downloader = MediaIoBaseDownload(file_data,request)
