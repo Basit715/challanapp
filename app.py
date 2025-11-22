@@ -51,6 +51,9 @@ from datetime import date, datetime
 from fpdf import FPDF
 from io import BytesIO
 from urllib.parse import quote_plus
+password = st.text_input("Enter password:", type="password")
+if password != st.secrets["APP_PASSWORD"]:
+    st.stop()  # Stops the app for anyone without the password
 
 # ---------------- Config ----------------
 DATA_DIR = "."
