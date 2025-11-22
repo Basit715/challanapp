@@ -123,7 +123,7 @@ def init_files():
 
 def load_challans():
     try:
-        df = read_excel_from_drive(st.secrets['CHALLAN_ID'])
+        df = read_excel_from_drive(st.secrets['files']['CHALLAN_ID'])
         return df.fillna("")
     except Exception as e:
         st.error(f"Error loading challans. {e}")
@@ -134,13 +134,13 @@ def load_challans():
 
 def save_challans(df):
     try:
-        write_excel_to_drive(df,st.secrets['CHALLAN_ID'])
+        write_excel_to_drive(df,st.secrets['files']['CHALLAN_ID'])
     except Exception as e:
         st.error(f"Error saving medicines {e}")
 
 def load_medicines():
     try:
-        df = read_excel_from_drive(st.secrets['MEDICINE_ID'])
+        df = read_excel_from_drive(st.secrets['files']['MEDICINE_ID'])
         return df.fillna()
     except Exception as e:
         st.error(f"Error loading medicines {e}")
@@ -148,13 +148,13 @@ def load_medicines():
 
 def save_medicines(df):
     try:
-        write_excel_to_drive(df,st.secrets['MEDICINE_ID'])
+        write_excel_to_drive(df,st.secrets['files']['MEDICINE_ID'])
     except Exception as e:
         st.error(f"Error saving medicines {e}")
 
 def load_daybook():
     try:
-        df = read_excel_from_drive(st.secrets['DAYBOOK_ID'])
+        df = read_excel_from_drive(st.secrets['files']['DAYBOOK_ID'])
         return df.fillna()
     except Exception as e:
         st.error(f"Error loading daybook {e}")
@@ -162,7 +162,7 @@ def load_daybook():
 
 def save_daybook(df):
     try:
-        write_excel_to_drive(df,st.secrets['DAYBOOK_ID'])
+        write_excel_to_drive(df,st.secrets['files']['DAYBOOK_ID'])
     except Exception as e:
         st.error(f"Error loading daybook {e}")
 
