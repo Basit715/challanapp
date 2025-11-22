@@ -396,7 +396,7 @@ with tab2:
                         save_medicines(med_df)
                         st.success("Deleted batch.")
                         del st.session_state["_edit_med_idx"]
-                        st.experimental_rerun()
+                        st.rerun()
 
 # ---------------- TAB: Challans ----------------
 with tab1:
