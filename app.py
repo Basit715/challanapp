@@ -150,7 +150,7 @@ def save_challans(df):
 def load_medicines():
     try:
         df = read_excel_from_drive(st.secrets['files']['MEDICINE_ID'])
-        return df.fillna()
+        return df.fillna("")
     except Exception as e:
         st.error(f"Error loading medicines {e}")
         return pd.DataFrame(columns=["med_id","name","batch","expiry","qty","rate","mrp","gst"])
@@ -164,7 +164,7 @@ def save_medicines(df):
 def load_daybook():
     try:
         df = read_excel_from_drive(st.secrets['files']['DAYBOOK_ID'])
-        return df.fillna()
+        return df.fillna("")
     except Exception as e:
         st.error(f"Error loading daybook {e}")
         return pd.DataFrame(columns=["entry_id","date","type","party_or_payee","category","amount","note"])
