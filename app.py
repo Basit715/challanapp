@@ -789,7 +789,7 @@ with tab4:
             else:
                 st.warning("Type YES to confirm.")
     # ---------------- TAB: Dashboard ----------------
-tab5 = st.tab("📈 Dashboard")  # create a new tab dynamically
+tab5 = st.tabs("📈 Dashboard")  # create a new tab dynamically
 
 with tab5:
     st.header("📊 Dynamic Dashboard")
