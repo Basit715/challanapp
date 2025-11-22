@@ -986,7 +986,7 @@ with tab7:
         st.success(f"Payment recorded. New balance for {payment_party}: ₹ {new_balance:.2f}")
         st.rerun()
 with tab8:
-    party_sel = st.selectbox("Select Party", options=parties)
+    party_sel = st.selectbox("Select Party", options=parties,key="party_sel_recurring")
     schedule_type = st.radio("Schedule type", options=["weekly","monthly"])
     note_rec = st.text_input("Note (optional)")
     if schedule_type == "weekly":
