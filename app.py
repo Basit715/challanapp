@@ -61,8 +61,15 @@ else:
     st.info("🔒 Please enter the password to access the app.")
     st.stop()
 st.success("Welcome.You have full access to this app now")
-img_url = "https://ibb.co/PvKrJJ9h"
-st.image(img_url,caption = "Basit Pushoo - Developer",use_column_width = True)
+
+
+
+
+with st.sidebar:
+    st.header("My Picture")
+    uploaded_file = st.file_uploader("Upload image", type=["png","jpg","jpeg"])
+    if uploaded_file:
+        st.image(Image.open(uploaded_file),caption = "Basit Pushoo - Developer", use_column_width=True)
 # ---------------- Config ----------------
 DATA_DIR = "."
 CHALLAN_FILE = os.path.join(DATA_DIR, "challans.xlsx")
