@@ -12,28 +12,35 @@ def gdrive_service():
     return build("drive","v3",credentials=creds)
 def read_excel_from_drive(file_id):
     service = gdrive_service()
-    request = service.files().export(fileId = file_id,mimeType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
-    file_data = request.execute()
 
-    downloader = MediaIoBaseDownload(file_data,request)
-    done = False
-    while not done:
-        status,done = downloader.next_chunk()
-    file_data.seek(0)
-    return pd.read_excel(file_data,engine="openpyxl")
-def write_excel_to_drive(df,file_id):
+    # Export Google Sheet to Excel
+    data = service.files().export(
+        fileId=file_id,
+        mimeType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    ).execute()
+
+    buffer = io.BytesIO()
+    buffer.write(data)
+    buffer.seek(0)
+
+    df = pd.read_excel(buffer, engine="openpyxl")
+    return df
+def write_excel_to_drive(df, file_id):
     service = gdrive_service()
+
     excel_buffer = io.BytesIO()
-    df.to_excel(excel_buffer,index=False,engine="openpyxl")
+    df.to_excel(excel_buffer, index=False, engine="openpyxl")
     excel_buffer.seek(0)
-    media = MediaIoBaseUpload(excel_buffer,mimetype = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
-    resumable = True
+
+    media = MediaIoBaseUpload(
+        excel_buffer,
+        mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        resumable=False
+    )
 
     service.files().update(
-
-        fileId = file_id,
-        media_body = media,
-        
+        fileId=file_id,
+        media_body=media
     ).execute()
 
 # challan_app_with_daybook.py
