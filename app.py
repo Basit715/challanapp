@@ -3,6 +3,7 @@ from googleapiclient.discovery import build
 from googleapiclient.http import MediaIoBaseUpload
 from googleapiclient.http import MediaIoBaseDownload
 import io
+from PIL import Image 
 def gdrive_service():
     creds = service_account.Credentials.from_service_account_info(
         st.secrets['gcp'],
@@ -60,6 +61,8 @@ else:
     st.info("🔒 Please enter the password to access the app.")
     st.stop()
 st.success("Welcome.You have full access to this app now")    
+img = Image.open("https://www.instagram.com/p/CsILB42PhbYUsgfbrGfNbHsOZNyK4Z1C_9vdf40/?igsh=eGt0dHEyN2hxZDZ0")  # Replace with your file path
+st.sidebar.image(img, caption="Basit Pushoo - Developer", use_column_width=True)
 
 # ---------------- Config ----------------
 DATA_DIR = "."
