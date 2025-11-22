@@ -52,9 +52,13 @@ from fpdf import FPDF
 from io import BytesIO
 from urllib.parse import quote_plus
 password = st.text_input("Enter password:", type="password")
-if password != st.secrets["APP_PASSWORD"]:
-    st.warning("opsii!!incorrect password. Access denied")
-    st.stop()  # Stops the app for anyone without the password
+if password:
+    if password != st.secrets["APP_PASSWORD"]:
+        st.warning("❌ Incorrect password. Access denied.")
+        st.stop()
+else:
+    st.info("🔒 Please enter the password to access the app.")
+    st.stop() the password
 st.success("Welcome.You have full access to this app now")    
 
 # ---------------- Config ----------------
