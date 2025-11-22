@@ -1,3 +1,39 @@
+from google.oauth import service_account
+from googleapiclient.discovery import build
+
+def gdrive_service():
+    creds = service_account.Credentials.from_service_account_nfo(
+        st.secrets['gcp'],
+        scopes = ["https://www.googleapis.com/auth/drive"]
+    )
+
+    return build("drive","v3",credentials=creds)
+def read_excel_from_drive(file_id):
+    service = gdrive_service()
+    request = service.files().get_media(fileId = file_id)
+    file_data = request.execute()
+
+    downloader = MediaIoBaseDownload(file_data,request)
+    done = False
+    while not done:
+        status,done = downloader.next_chunk()
+    file_data.seek(0)
+    return pd.read_excel(file_data,engine="openpyxl")
+def write_excel_to_drive(df,file_id):
+    service = gdrive_service()
+    excel_buffer = io.BytesIo()
+    df.excel(excel_buffer,index=False,engine="openpyxl")
+    excel_buffer.seek(0)
+    media = MediaIoaBaseUpload(excel_buffer,mimetype = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+    resumable = True
+
+    service.files().update(
+
+        fileId = file_id,
+        media_body = media,
+        
+    ).execute()
+
 # challan_app_with_daybook.py
 import streamlit as st
 import pandas as pd
@@ -10,8 +46,11 @@ from urllib.parse import quote_plus
 # ---------------- Config ----------------
 DATA_DIR = "."
 CHALLAN_FILE = os.path.join(DATA_DIR, "challans.xlsx")
+CHALLAN_ID = "1Lw1iy1eCXd82tMUEQB2Z7VcRzR7jgQUwiBrd5o_raVg"
 MEDICINES_FILE = os.path.join(DATA_DIR, "medicines.xlsx")
+MEDICINE_ID = "1JeFEFSwd8P2Ekwq1xonc9ENLrR4MdmiujSMNhNgd8yc"
 DAYBOOK_FILE = os.path.join(DATA_DIR, "daybook.xlsx")
+DAYBOOK_ID = "1F4re8JIwfx8B_C9qhAjlhbfUcP6caiDZiM6i-LLc-_8"
 MAX_ITEMS = 50
 DEFAULT_GST = 5.0
 APP_TITLE = "💊 NEW PharmaWAYS — Challan Manager (BY BASIT PUSHOO)"
@@ -84,33 +123,48 @@ def init_files():
 
 def load_challans():
     try:
-        return pd.read_excel(CHALLAN_FILE, engine="openpyxl")
-    except Exception:
+        df = read_excel_from_drive(st.secrets['CHALLAN_ID'])
+        return df.fillna("")
+    except Exception as e:
+        st.error(f"Error loading challans. {e}")
         return pd.DataFrame(columns=[
             "challan_no", "date", "party", "item", "batch",
             "qty", "rate", "discount", "gst", "amount", "grand_total"
         ])
 
 def save_challans(df):
-    df.to_excel(CHALLAN_FILE, index=False, engine="openpyxl")
+    try:
+        write_excel_to_drive(df,st.secrets['CHALLANS_ID'])
+    except Exception as e:
+        st.error(f"Error saving medicines {e}")
 
 def load_medicines():
     try:
-        return pd.read_excel(MEDICINES_FILE, engine="openpyxl").fillna("")
-    except Exception:
+        df = read_excel_from_drive(st.secrets['MEDICINE_ID'])
+        return df.fillna()
+    except Exception as e:
+        st.error(f"Error loading medicines {e}")
         return pd.DataFrame(columns=["med_id","name","batch","expiry","qty","rate","mrp","gst"])
 
 def save_medicines(df):
-    df.to_excel(MEDICINES_FILE, index=False, engine="openpyxl")
+    try:
+        write_excel_to_drive(df,st.secrets['MEDICINE_ID'])
+    except Exception as e:
+        st.error(f"Error saving medicines {e}")
 
 def load_daybook():
     try:
-        return pd.read_excel(DAYBOOK_FILE, engine="openpyxl")
-    except Exception:
+        df = read_excel_from_drive(st.secrets['DAYBOOK_ID'])
+        return df.fillna()
+    except Exception as e:
+        st.error(f"Error loading daybook {e}")
         return pd.DataFrame(columns=["entry_id","date","type","party_or_payee","category","amount","note"])
 
 def save_daybook(df):
-    df.to_excel(DAYBOOK_FILE, index=False, engine="openpyxl")
+    try:
+        write_excel_to_drive(df,st.secrets['DAYBOOK_ID'])
+    except Exception as e:
+        st.error(f"Error loading daybook {e}")
 
 # ---------------- Calculations & PDF ----------------
 def compute_row_amount(qty, rate, discount_pct, gst_pct):
