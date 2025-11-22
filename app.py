@@ -230,7 +230,7 @@ def save_recurring(df):
 
 recurring_df = load_recurring()
 if recurring_df.empty:
-    starting_entrie = pd.Dataframe([
+    starting_entrie = pd.DataFrame([
         {"party":"Party A", "shedule_type":"weekly","day_of_week":0,"days_of_month":[],"note":"Pay every monday 10% of balance"},
         {"party":"Party B", "schedule_type":"monthly","day_of_week":None,"days_of_month":[1,10,20],"note":"Pay on ist,10th,20th 10% of balance"}
     ])
