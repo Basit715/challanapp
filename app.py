@@ -310,8 +310,7 @@ st.caption("whatsaApp: set default reciepeint phone (country code, no +).Optiona
 wa_default_number = st.text_input("Default whatsapp number e.g; 919541292214",value="",key="wa_default_number")
 
 # Tab order: Challans | Medicines | Reports | Day Book (user chose B)
-tab1, tab2, tab3, tab4, tab5 = st.tabs(["Challans", "Medicines (Inventory)", "Reports / Utilities", "Day Book","📈 Dashboard"])
-
+tab1, tab2, tab3, tab4, tab5,tab6 = st.tabs(["Challans", "Medicines (Inventory)", "Reports / Utilities", "Day Book","📈 Dashboard","💊 Advertisement"])
 # ---------------- TAB: Medicines inventory ----------------
 with tab2:
     st.header("📦 Medicines Inventory (batch-level)")
@@ -845,6 +844,29 @@ with tab5:
         st.metric("Net Balance", f"₹ {total_credit-total_debit:.2f}")
     else:
         st.info("No daybook data for analytics.")
+with tab6:
+    st.header("🌟 Our Medicine Catalog")
+
+    # Copy medicine dataframe
+    med_catalog = med_df.copy()
+
+    # Search box
+    search_term = st.text_input("Search medicine or use:", key="adv_search")
+    if search_term:
+        med_catalog = med_catalog[
+            med_catalog['name'].str.contains(search_term, case=False, na=False) |
+            med_catalog['batch'].str.contains(search_term, case=False, na=False)
+        ]
+
+    # Filter by category (if we add categories later)
+    st.subheader("Medicine List")
+    for idx, row in med_catalog.iterrows():
+        st.markdown(f"**{row['name']}**  |  Batch: {row['batch']}  |  Price: ₹{row['mrp']:.2f}")
+        st.write(f"Expiry: {row.get('expiry','N/A')}, Stock: {row.get('qty',0)}")
+        st.markdown("---")
+
+    # Download catalog
+    st.download_button("📥 Download Catalog as CSV", med_catalog.to_csv(index=False), "medicines_catalog.csv")
 
 # ---------------- Save final state (ensure persisted) ----------------
 save_challans(challans_df)
