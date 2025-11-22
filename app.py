@@ -203,6 +203,15 @@ def save_ledger(df):
         st.error(f"Error saving ledger: {e}")
 
 ledger_df = load_ledger()
+# ---------------- Initialize ledger with starting balances if empty ----------------
+if ledger_df.empty:
+    # Example: add starting balances for existing parties
+    starting_entries = pd.DataFrame([
+        {"entry_id":1,"party":"Party A","date":"2025-01-01","type":"Starting Balance","amount":0.0,"balance":1000.0,"note":"Initial balance"},
+        {"entry_id":2,"party":"Party B","date":"2025-01-01","type":"Starting Balance","amount":0.0,"balance":500.0,"note":"Initial balance"}
+    ])
+    ledger_df = pd.concat([ledger_df, starting_entries], ignore_index=True)
+    save_ledger(ledger_df)
 
 # ---------------- Calculations & PDF ----------------
 def compute_row_amount(qty, rate, discount_pct, gst_pct):
