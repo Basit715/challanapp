@@ -864,7 +864,7 @@ with tab6:
     # Filter by category (if we add categories later)
     st.subheader("Medicine List")
     for idx, row in med_catalog.iterrows():
-        st.markdown(f"**{row['name']}**  |  Batch: {row['batch']}  |  Price: ₹{row['mrp']:.2f}")
+        st.markdown(f"**{row['name']}**  |  Batch: {row['batch']}  |  Price: ₹{row['rate']:.2f}")
         st.write(f"**Use:**{row.get('use','N/A')}")
         st.write(f"Expiry: {row.get('expiry','N/A')}, Stock: {row.get('qty',0)}")
         st.markdown("---")
