@@ -866,7 +866,7 @@ with tab6:
         st.markdown("---")
 
     # Download catalog
-    st.download_button("📥 Download Catalog as CSV", med_catalog.to_pdf(index=False), "medicines_catalog.csv")
+    st.download_button("📥 Download Catalog as CSV", med_catalog.to_csv(index=False), "medicines_catalog.csv")
 
 # ---------------- Save final state (ensure persisted) ----------------
 save_challans(challans_df)
