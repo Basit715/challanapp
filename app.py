@@ -310,7 +310,7 @@ st.caption("whatsaApp: set default reciepeint phone (country code, no +).Optiona
 wa_default_number = st.text_input("Default whatsapp number e.g; 919541292214",value="",key="wa_default_number")
 
 # Tab order: Challans | Medicines | Reports | Day Book (user chose B)
-tab1, tab2, tab3, tab4 = st.tabs(["Challans", "Medicines (Inventory)", "Reports / Utilities", "Day Book"])
+tab1, tab2, tab3, tab4, tab5 = st.tabs(["Challans", "Medicines (Inventory)", "Reports / Utilities", "Day Book","📈 Dashboard"])
 
 # ---------------- TAB: Medicines inventory ----------------
 with tab2:
@@ -789,7 +789,7 @@ with tab4:
             else:
                 st.warning("Type YES to confirm.")
     # ---------------- TAB: Dashboard ----------------
-tab5 = st.tabs("📈 Dashboard")  # create a new tab dynamically
+
 
 with tab5:
     st.header("📊 Dynamic Dashboard")
