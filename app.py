@@ -62,14 +62,22 @@ else:
     st.stop()
 st.success("Welcome.You have full access to this app now")
 
+st.sidebar.header("My Profile Picture")
+
+# Input for online image URL
+url_img = st.sidebar.text_input("Enter image URL (must end with .jpg/.png):")
+
+if url_img:
+    try:
+        response = requests.get(url_img)
+        image = Image.open(BytesIO(response.content))
+        st.sidebar.image(image, caption="Profile Picture", use_column_width=True)
+    except:
+        st.sidebar.error("Unable to load image from the provided URL. Make sure it's a direct image link ending with .jpg or .png.")
 
 
 
-with st.sidebar:
-    st.header("My Picture")
-    uploaded_file = st.file_uploader("Upload image", type=["png","jpg","jpeg"])
-    if uploaded_file:
-        st.image(Image.open(uploaded_file),caption = "Basit Pushoo - Developer", use_column_width=True)
+
 # ---------------- Config ----------------
 DATA_DIR = "."
 CHALLAN_FILE = os.path.join(DATA_DIR, "challans.xlsx")
