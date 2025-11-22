@@ -1,4 +1,4 @@
-from google.oauth import service_account
+from google.oauth2 import service_account
 from googleapiclient.discovery import build
 
 def gdrive_service():
