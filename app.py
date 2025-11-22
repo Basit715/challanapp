@@ -788,6 +788,63 @@ with tab4:
                 st.experimental_rerun()
             else:
                 st.warning("Type YES to confirm.")
+    # ---------------- TAB: Dashboard ----------------
+tab5 = st.tab("📈 Dashboard")  # create a new tab dynamically
+
+with tab5:
+    st.header("📊 Dynamic Dashboard")
+    
+    # ---------- Challans Analytics ----------
+    st.subheader("Challans Analytics")
+    if not challans_df.empty:
+        df = challans_df.copy()
+        df["date"] = pd.to_datetime(df["date"], errors="coerce")
+        df["month"] = df["date"].dt.to_period("M").astype(str)
+        monthly_sales = df.groupby("month")["grand_total"].sum().reset_index()
+        top_meds = df.groupby("item")["qty"].sum().sort_values(ascending=False).head(10).reset_index()
+        
+        col1, col2 = st.columns(2)
+        with col1:
+            st.bar_chart(monthly_sales.rename(columns={"month":"index"}).set_index("month"))
+        with col2:
+            st.bar_chart(top_meds.rename(columns={"item":"index"}).set_index("item"))
+    else:
+        st.info("No challans data for analytics.")
+
+    # ---------- Inventory Analytics ----------
+    st.subheader("Inventory Analytics")
+    if not med_df.empty:
+        low_stock = med_df[med_df["qty"]<10]
+        col1, col2 = st.columns([2,1])
+        with col1:
+            stock_chart = med_df.groupby("name")["qty"].sum().sort_values(ascending=False)
+            st.bar_chart(stock_chart)
+        with col2:
+            st.write("Low Stock (<10 units)")
+            st.dataframe(low_stock[["name","batch","qty"]])
+    else:
+        st.info("No medicines data for inventory analytics.")
+
+    # ---------- Daybook Analytics ----------
+    st.subheader("Day Book Analytics")
+    if not daybook_df.empty:
+        db = daybook_df.copy()
+        db["date"] = pd.to_datetime(db["date"], errors="coerce")
+        daily_credit = db[db["type"]=="CREDIT"].groupby("date")["amount"].sum().reset_index()
+        daily_debit = db[db["type"]=="DEBIT"].groupby("date")["amount"].sum().reset_index()
+        col1, col2 = st.columns([1,1])
+        with col1:
+            st.line_chart(daily_credit.rename(columns={"date":"index"}).set_index("date"))
+        with col2:
+            st.line_chart(daily_debit.rename(columns={"date":"index"}).set_index("date"))
+        
+        total_credit = daily_credit["amount"].sum()
+        total_debit = daily_debit["amount"].sum()
+        st.metric("Total Credit", f"₹ {total_credit:.2f}")
+        st.metric("Total Debit", f"₹ {total_debit:.2f}")
+        st.metric("Net Balance", f"₹ {total_credit-total_debit:.2f}")
+    else:
+        st.info("No daybook data for analytics.")
 
 # ---------------- Save final state (ensure persisted) ----------------
 save_challans(challans_df)
