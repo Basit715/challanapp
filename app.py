@@ -61,7 +61,7 @@ else:
     st.info("🔒 Please enter the password to access the app.")
     st.stop()
 st.success("Welcome.You have full access to this app now")
-img_url = "https://drive.google.com/file/d/1LN90Z0bGU9-SHiDWEe5f-L4KInWvBdVY/view?usp=drivesdk"
+img_url = "https://ibb.co/PvKrJJ9h"
 st.image(img_url,caption = "Basit Pushoo - Developer",use_column_width = True)
 # ---------------- Config ----------------
 DATA_DIR = "."
