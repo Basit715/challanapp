@@ -128,9 +128,9 @@ def init_files():
     if not os.path.exists(MEDICINES_FILE):
         # small preloaded sample
         sample = pd.DataFrame([
-            {"med_id":"M0001","name":"Paracetamol 500mg","batch":"B1001","expiry":"2026-06-30","qty":100,"rate":12.5,"mrp":15.0,"gst":DEFAULT_GST},
-            {"med_id":"M0002","name":"Ciprofloxacin 500mg","batch":"C2001","expiry":"2025-12-31","qty":50,"rate":28.0,"mrp":35.0,"gst":DEFAULT_GST},
-            {"med_id":"M0003","name":"Vitamin C 500mg","batch":"V3001","expiry":"2027-01-01","qty":200,"rate":8.0,"mrp":10.0,"gst":DEFAULT_GST},
+            {"med_id":"M0001","name":"Paracetamol 500mg","batch":"B1001","expiry":"2026-06-30","qty":100,"rate":12.5,"mrp":15.0,"gst":DEFAULT_GST,"use":"Pain and fever"},
+            {"med_id":"M0002","name":"Ciprofloxacin 500mg","batch":"C2001","expiry":"2025-12-31","qty":50,"rate":28.0,"mrp":35.0,"gst":DEFAULT_GST,"use":"Bacterial"},
+            {"med_id":"M0003","name":"Vitamin C 500mg","batch":"V3001","expiry":"2027-01-01","qty":200,"rate":8.0,"mrp":10.0,"gst":DEFAULT_GST,"use":"immunity"},
         ])
         sample.to_excel(MEDICINES_FILE, index=False, engine="openpyxl")
     # daybook
@@ -319,6 +319,8 @@ with tab2:
         st.subheader("Add new batch")
         med_name = st.text_input("Medicine name", key="med_add_name")
         batch = st.text_input("Batch", key="med_add_batch")
+        use = st.text_input("Use / Description",key="med_add_use")
+                            
         expiry = ""
         if st.checkbox("Set expiry?", key="chk_med_exp"):
             expiry = st.date_input("Expiry (optional)", value=date.today(), key="med_add_expiry").strftime("%Y-%m-%d")
@@ -339,7 +341,8 @@ with tab2:
                     "qty": qty,
                     "rate": rate,
                     "mrp": mrp,
-                    "gst": gst
+                    "gst": gst,
+                    "use": use
                 }
                 med_df = pd.concat([med_df, pd.DataFrame([new_row])], ignore_index=True)
                 save_medicines(med_df)
@@ -862,6 +865,7 @@ with tab6:
     st.subheader("Medicine List")
     for idx, row in med_catalog.iterrows():
         st.markdown(f"**{row['name']}**  |  Batch: {row['batch']}  |  Price: ₹{row['mrp']:.2f}")
+        st.write(f"**Use:**{row.get('use','N/A')}")
         st.write(f"Expiry: {row.get('expiry','N/A')}, Stock: {row.get('qty',0)}")
         st.markdown("---")
 
