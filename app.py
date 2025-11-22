@@ -134,7 +134,7 @@ def load_challans():
 
 def save_challans(df):
     try:
-        write_excel_to_drive(df,st.secrets['CHALLANS_ID'])
+        write_excel_to_drive(df,st.secrets['CHALLAN_ID'])
     except Exception as e:
         st.error(f"Error saving medicines {e}")
 
