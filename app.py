@@ -53,7 +53,9 @@ from io import BytesIO
 from urllib.parse import quote_plus
 password = st.text_input("Enter password:", type="password")
 if password != st.secrets["APP_PASSWORD"]:
+    st.warning("opsii!!incorrect password. Access denied")
     st.stop()  # Stops the app for anyone without the password
+st.success("Welcome.You have full access to this app now")    
 
 # ---------------- Config ----------------
 DATA_DIR = "."
