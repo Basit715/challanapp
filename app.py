@@ -22,7 +22,7 @@ def read_excel_from_drive(file_id):
 def write_excel_to_drive(df,file_id):
     service = gdrive_service()
     excel_buffer = io.BytesIO()
-    df.excel(excel_buffer,index=False,engine="openpyxl")
+    df.to_excel(excel_buffer,index=False,engine="openpyxl")
     excel_buffer.seek(0)
     media = MediaIoaBaseUpload(excel_buffer,mimetype = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
     resumable = True
