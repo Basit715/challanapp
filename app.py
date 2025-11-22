@@ -61,19 +61,11 @@ else:
     st.info("🔒 Please enter the password to access the app.")
     st.stop()
 st.success("Welcome.You have full access to this app now")
+uploaded_file = st.file_uploader("Upload an image", type=["png","jpg","jpeg"])
+if uploaded_file:
+    image = Image.open(uploaded_file)
+    st.image(image, caption="Basit Pushoo - Developer", use_column_width=True)
 
-st.sidebar.header("My Profile Picture")
-
-# Input for online image URL
-url_img = st.sidebar.text_input("Enter image URL (must end with .jpg/.png):")
-
-if url_img:
-    try:
-        response = requests.get(url_img)
-        image = Image.open(BytesIO(response.content))
-        st.sidebar.image(image, caption="Profile Picture", use_column_width=True)
-    except:
-        st.sidebar.error("Unable to load image from the provided URL. Make sure it's a direct image link ending with .jpg or .png.")
 
 
 
