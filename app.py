@@ -527,28 +527,26 @@ with tab1:
                 challans_df = load_challans()
                 med_df = load_medicines()
                 if party:
-    total_amount = sum(item['amount'] for item in new_items)
+                    total_amount = sum(item['amount'] for item in new_items)
+                    if not ledger_df[ledger_df['party']==party].empty:
+                        last_balance = float(ledger_df[ledger_df['party']==party]['balance'].iloc[-1])
+                    else:
+                        last_balance = 0.0
 
-    # Get last balance for party
-    if not ledger_df[ledger_df['party']==party].empty:
-        last_balance = float(ledger_df[ledger_df['party']==party]['balance'].iloc[-1])
-    else:
-        last_balance = 0.0
+                    new_balance = last_balance + total_amount
 
-    new_balance = last_balance + total_amount
-
-    new_entry = {
-        "entry_id": len(ledger_df)+1,
-        "party": party,
-        "date": date_val.strftime("%Y-%m-%d"),
-        "type": "Credit",
-        "amount": total_amount,
-        "balance": new_balance,
-        "note": f"Challan #{challan_no}"
-    }
-    ledger_df = pd.concat([ledger_df, pd.DataFrame([new_entry])], ignore_index=True)
-    save_ledger(ledger_df)
-    st.success(f"Ledger updated for {party}. New balance: ₹ {new_balance:.2f}")
+                    new_entry = {
+                        "entry_id": len(ledger_df)+1,
+                        "party": party,
+                        "date": date_val.strftime("%Y-%m-%d"),
+                        "type": "Credit",
+                        "amount": total_amount,
+                        "balance": new_balance,
+                        "note": f"Challan #{challan_no}"
+                    }
+                    ledger_df = pd.concat([ledger_df, pd.DataFrame([new_entry])], ignore_index=True)
+                    save_ledger(ledger_df)
+                    st.success(f"Ledger updated for {party}. New balance: ₹ {new_balance:.2f}")
                 try:
                     st.experimental_rerun()
                 except:
