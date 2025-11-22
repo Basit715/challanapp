@@ -58,7 +58,7 @@ if password:
         st.stop()
 else:
     st.info("🔒 Please enter the password to access the app.")
-    st.stop() the password
+    st.stop()
 st.success("Welcome.You have full access to this app now")    
 
 # ---------------- Config ----------------
