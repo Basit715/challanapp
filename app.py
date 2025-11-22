@@ -1,6 +1,6 @@
 from google.oauth2 import service_account
 from googleapiclient.discovery import build
-
+import io
 def gdrive_service():
     creds = service_account.Credentials.from_service_account_info(
         st.secrets['gcp'],
