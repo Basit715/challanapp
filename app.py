@@ -1015,7 +1015,7 @@ else:
         ledger_df = pd.concat([ledger_df, pd.DataFrame([new_entry])], ignore_index=True)
         save_ledger(ledger_df)
         st.success(f"Payment recorded. New balance for {payment_party}: ₹ {new_balance:.2f}")
-        st.experimental_rerun()
+        st.rerun()
 with tab8:
     party_sel = st.selectbox("Select Party", options=parties,key="party_sel_recurring")
     schedule_type = st.radio("Schedule type", options=["weekly","monthly"])
