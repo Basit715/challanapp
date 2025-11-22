@@ -71,6 +71,8 @@ DAYBOOK_FILE = os.path.join(DATA_DIR, "daybook.xlsx")
 DAYBOOK_ID = "1F4re8JIwfx8B_C9qhAjlhbfUcP6caiDZiM6i-LLc-_8"
 LEDGER_FILE = os.path.join(DATA_DIR, "ledger.xlsx")
 LEDGER_ID = "1zg8jEUH3wibNvS6BfH6Jh0kcikXbfVsRFWKl9ZDMlSk"
+RECURRING_FILE = os.path.join(DATA_DIR,"recurring.xlsx")
+RECURRING_ID = "1Gti-tD9DlYpDqZUicvzmTBFKTYU-_NabM8i8etY0b4k"
 MAX_ITEMS = 50
 DEFAULT_GST = 5.0
 APP_TITLE = "💊 NEW PharmaWAYS — Challan Manager (BY BASIT PUSHOO)"
@@ -212,6 +214,28 @@ if ledger_df.empty:
     ])
     ledger_df = pd.concat([ledger_df, starting_entries], ignore_index=True)
     save_ledger(ledger_df)
+def load_recurring():
+    try:
+        df = read_excel_from_drive(RECURRING_ID)
+        return df.fillna("")
+    except:
+        # Initialize empty table
+        return pd.DataFrame(columns=["party","schedule_type","day_of_week","days_of_month","note"])
+
+def save_recurring(df):
+    try:
+        write_excel_to_drive(df, RECURRING_ID)
+    except Exception as e:
+        st.error(f"Error saving recurring: {e}")
+
+recurring_df = load_recurring()
+if recurring_df.empty:
+    starting_entrie = pd.Dataframe([
+        {"party":"Party A", "shedule_type":"weekly","day_of_week":0,"days_of_month":[],"note":"Pay every monday 10% of balance"},
+        {"party":"Party B", "schedule_type":"monthly","day_of_week":None,"days_of_month":[1,10,20],"note":"Pay on ist,10th,20th 10% of balance"}
+    ])
+    recurring_df = pd.concat([recurring_df,starting_entrie],ignore_index=True)
+    save_recurring(recurring_df)
 
 # ---------------- Calculations & PDF ----------------
 def compute_row_amount(qty, rate, discount_pct, gst_pct):
@@ -339,7 +363,7 @@ st.caption("whatsaApp: set default reciepeint phone (country code, no +).Optiona
 wa_default_number = st.text_input("Default whatsapp number e.g; 919541292214",value="",key="wa_default_number")
 
 # Tab order: Challans | Medicines | Reports | Day Book (user chose B)
-tab1, tab2, tab3, tab4, tab5,tab6,tab7 = st.tabs(["Challans", "Medicines (Inventory)", "Reports / Utilities", "Day Book","📈 Dashboard","💊 Advertisement","LEDGER"]
+tab1, tab2, tab3, tab4, tab5,tab6,tab7,tab8 = st.tabs(["Challans", "Medicines (Inventory)", "Reports / Utilities", "Day Book","📈 Dashboard","💊 Advertisement","LEDGER","Recurring_Payment"]
                                                 )
 # ---------------- TAB: Medicines inventory ----------------
 with tab2:
@@ -961,6 +985,57 @@ with tab7:
         save_ledger(ledger_df)
         st.success(f"Payment recorded. New balance for {payment_party}: ₹ {new_balance:.2f}")
         st.rerun()
+with tab8:
+    party_sel = st.selectbox("Select Party", options=parties)
+    schedule_type = st.radio("Schedule type", options=["weekly","monthly"])
+    note_rec = st.text_input("Note (optional)")
+    if schedule_type == "weekly":
+       day_week = st.selectbox("Day of Week", options=["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"])
+    else:
+       days_input = st.text_input("Enter days of month (comma-separated, e.g., 1,10,20)")
+    if st.button("Add Recurring Payment"):
+       new_row = {"party":party_sel, "schedule_type":schedule_type, "day_of_week":None, "days_of_month":[], "note":note_rec}
+       if schedule_type == "weekly":
+        new_row["day_of_week"] = ["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"].index(day_week)
+       else:
+           try:
+              new_row["days_of_month"] = [int(d.strip()) for d in days_input.split(",") if 1 <= int(d.strip()) <= 31]
+              if not new_row["days_of_month"]:
+                st.error("Enter valid day numbers (1-31).")
+                st.stop()
+           except:
+            st.error("Invalid day input")
+            st.stop()
+       recurring_df = pd.concat([recurring_df, pd.DataFrame([new_row])], ignore_index=True)
+       save_recurring(recurring_df)
+       st.success(f"Recurring payment for {party_sel} added successfully!")
+today = datetime.today()
+today_day = today.day        # 1-31
+today_weekday = today.weekday()  # 0=Monday
+
+# Weekly due today
+weekly_due = recurring_df[(recurring_df['schedule_type']=="weekly") & (recurring_df['day_of_week']==today_weekday)]
+# Monthly due today
+monthly_due = recurring_df[(recurring_df['schedule_type']=="monthly") & (recurring_df['days_of_month'].apply(lambda x: today_day in x if isinstance(x,list) else False))]
+
+due_today = pd.concat([weekly_due, monthly_due], ignore_index=True)
+
+if not due_today.empty:
+    st.subheader("💰 Payments Due Today (10% of Balance)")
+    for _, row in due_today.iterrows():
+        party_name = row['party']
+        note = row['note']
+        # get current balance from ledger
+        party_entries = ledger_df[ledger_df['party']==party_name]
+        if not party_entries.empty:
+            current_balance = float(party_entries['balance'].iloc[-1])
+            due_amount = round(current_balance * 0.10, 2)
+            st.write(f"{party_name} → ₹ {due_amount:.2f} ({note})")
+        else:
+            st.write(f"{party_name} → No balance recorded")
+else:
+    st.info("No payments due today")
+       
 # ---------------- Save final state (ensure persisted) ----------------
 save_challans(challans_df)
 save_medicines(med_df)
