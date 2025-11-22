@@ -64,7 +64,7 @@ st.success("Welcome.You have full access to this app now")
 
 
 # Load image from repo
-img = Image.open("my_photo.jpg")  # just the filename if in same folder
+img = Image.open("Gemini_Generated_Image_j18vq7j18vq7j18v.png")  # just the filename if in same folder
 st.image(img,caption = "Basit Pushoo - Developer", width=100)          # adjust size as needed
 
 
