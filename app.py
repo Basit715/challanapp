@@ -1001,6 +1001,13 @@ else:
         st.write(f"**Current Balance:** ₹ {party_entries['balance'].iloc[-1]:.2f}")
     else:
         st.info("No ledger entries for this party yet.")
+    if st.button(f"🗑️ Delete Party '{selected_party}'"):
+        confirm = st.checkbox(f"Confirm deletion of '{selected_party}' (all entries will be lost)")
+        if confirm:
+            ledger_df = ledger_df[ledger_df['party'] != selected_party]
+            save_ledger(ledger_df)
+            st.success(f"Party '{selected_party}' and all its entries have been deleted.")
+            st.rerun()
 
     # ---------------- Record Payment ----------------
     st.subheader("💵 Record Payment")
