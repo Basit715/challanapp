@@ -379,7 +379,7 @@ tab = st.selectbox(
 
                                                 
 # ---------------- TAB: Medicines inventory ----------------
-if tab == "Medicine (Inventory)":
+if tab == "Medicines (Inventory)":
     st.header("📦 Medicines Inventory (batch-level)")
     colA, colB = st.columns([2,1])
     with colA:
