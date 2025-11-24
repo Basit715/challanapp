@@ -370,7 +370,7 @@ st.caption("whatsaApp: set default reciepeint phone (country code, no +).Optiona
 wa_default_number = st.text_input("Default whatsapp number e.g; 919541292214",value="",key="wa_default_number")
 
 # Tab order: Challans | Medicines | Reports | Day Book (user chose B)
-tab1, tab2, tab3, tab4, tab5,tab6,tab7,tab8,tab9 = st.tabs(["Challans", "Medicines (Inventory)", "Reports / Utilities", "Day Book","📈 Dashboard","💊 Advertisement","LEDGER","Recurring_Payment,Billing"]
+tab1, tab2, tab3, tab4, tab5,tab6,tab7,tab8,tab9 = st.tabs(["Challans", "Medicines (Inventory)", "Reports / Utilities", "Day Book","📈 Dashboard","💊 Advertisement","LEDGER","Recurring_Payment","Billing"]
                                                 )
 # ---------------- TAB: Medicines inventory ----------------
 with tab2:
