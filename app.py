@@ -61,7 +61,7 @@ if "logged_in" not in st.session_state:
 
 # If not logged in, show login UI
 if not st.session_state.logged_in:
-    password = st.text_input("Enter password:", type="password")
+    password = st.text_input("Enter password:", type="password",key="app_password_input")
 
     if st.button("Login"):
         if password == st.secrets["APP_PASSWORD"]:
