@@ -53,14 +53,27 @@ from fpdf import FPDF
 from io import BytesIO
 from urllib.parse import quote_plus
 password = st.text_input("Enter password:", type="password")
-if password:
-    if password != st.secrets["APP_PASSWORD"]:
-        st.warning("❌ Incorrect password. Access denied.")
-        st.stop()
-else:
-    st.info("🔒 Please enter the password to access the app.")
-    st.stop()
-st.success("Welcome.You have full access to this app now")
+# -------------------- LOGIN SYSTEM --------------------
+
+# Create session state key
+if "logged_in" not in st.session_state:
+    st.session_state.logged_in = False
+
+# If not logged in, show login UI
+if not st.session_state.logged_in:
+    password = st.text_input("Enter password:", type="password")
+
+    if st.button("Login"):
+        if password == st.secrets["APP_PASSWORD"]:
+            st.session_state.logged_in = True
+            st.success("Welcome. You have full access to this app now")
+            st.rerun()
+        else:
+            st.warning("❌ Incorrect password. Access denied.")
+
+    st.stop()  # prevent rest of app from loading
+
+# If logged in, continue app normally
 
 
 # Load image from repo
