@@ -368,7 +368,8 @@ daybook_df = load_daybook()
 st.title(APP_TITLE)
 st.caption("whatsaApp: set default reciepeint phone (country code, no +).Optional")
 wa_default_number = st.text_input("Default whatsapp number e.g; +91 9541292214",value="",key="wa_default_number")
-
+# At the top, after loading ledger_df
+parties = sorted(ledger_df['party'].dropna().unique().tolist())
 tab = st.selectbox(
     "Select Tab",
     ["Challans", "Medicines (Inventory)", "Reports / Utilities", "Day Book",
