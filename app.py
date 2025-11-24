@@ -1025,55 +1025,68 @@ elif tab == "Ledger":
         save_ledger(ledger_df)
         st.success("Payment added!") 
 elif tab == "Recurring Payment":
-    party_sel = st.selectbox("Select Party", options=parties,key="party_sel_recurring")
+elif tab == "Recurring Payment":
+    party_sel = st.selectbox("Select Party", options=parties, key="party_sel_recurring")
     schedule_type = st.radio("Schedule type", options=["weekly","monthly"])
     note_rec = st.text_input("Note (optional)")
+
     if schedule_type == "weekly":
-       day_week = st.selectbox("Day of Week", options=["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"])
+        day_week = st.selectbox("Day of Week", options=["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"])
     else:
-       days_input = st.text_input("Enter days of month (comma-separated, e.g., 1,10,20)")
+        days_input = st.text_input("Enter days of month (comma-separated, e.g., 1,10,20)")
+
     if st.button("Add Recurring Payment"):
-       new_row = {"party":party_sel, "schedule_type":schedule_type, "day_of_week":None, "days_of_month":[], "note":note_rec}
-       if schedule_type == "weekly":
-          new_row["day_of_week"] = ["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"].index(day_week)
-       else:
-           try:
-              new_row["days_of_month"] = [int(d.strip()) for d in days_input.split(",") if 1 <= int(d.strip()) <= 31]
-              if not new_row["days_of_month"]:
-                 st.error("Enter valid day numbers (1-31).")
-                 st.stop()
-           except:
-              st.error("Invalid day input")
-              st.stop()
-       recurring_df = pd.concat([recurring_df, pd.DataFrame([new_row])], ignore_index=True)
-       save_recurring(recurring_df)
-       st.success(f"Recurring payment for {party_sel} added successfully!")
-     today = datetime.today()
-     today_day = today.day        # 1-31
-     today_weekday = today.weekday()  # 0=Monday
+        new_row = {"party": party_sel, "schedule_type": schedule_type, "day_of_week": None, "days_of_month": [], "note": note_rec}
+        if schedule_type == "weekly":
+            new_row["day_of_week"] = ["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"].index(day_week)
+        else:
+            try:
+                new_row["days_of_month"] = [int(d.strip()) for d in days_input.split(",") if 1 <= int(d.strip()) <= 31]
+                if not new_row["days_of_month"]:
+                    st.error("Enter valid day numbers (1-31).")
+                    st.stop()
+            except:
+                st.error("Invalid day input")
+                st.stop()
 
-# Weekly due today
-     weekly_due = recurring_df[(recurring_df['schedule_type']=="weekly") & (recurring_df['day_of_week']==today_weekday)]
-# Monthly due today
-     monthly_due = recurring_df[(recurring_df['schedule_type']=="monthly") & (recurring_df['days_of_month'].apply(lambda x: today_day in x if isinstance(x,list) else False))]
+        recurring_df = pd.concat([recurring_df, pd.DataFrame([new_row])], ignore_index=True)
+        save_recurring(recurring_df)
+        st.success(f"Recurring payment for {party_sel} added successfully!")
 
-     due_today = pd.concat([weekly_due, monthly_due], ignore_index=True)
+    # ====== Run this every time, not just after adding a payment ======
+    today = datetime.today()
+    today_day = today.day        # 1-31
+    today_weekday = today.weekday()  # 0=Monday
 
-     if not due_today.empty:
+    # Weekly due today
+    weekly_due = recurring_df[
+        (recurring_df['schedule_type'] == "weekly") & 
+        (recurring_df['day_of_week'] == today_weekday)
+    ]
+
+    # Monthly due today
+    monthly_due = recurring_df[
+        (recurring_df['schedule_type'] == "monthly") & 
+        (recurring_df['days_of_month'].apply(lambda x: today_day in x if isinstance(x, list) else False))
+    ]
+
+    due_today = pd.concat([weekly_due, monthly_due], ignore_index=True)
+
+    if not due_today.empty:
         st.subheader("💰 Payments Due Today (10% of Balance)")
         for _, row in due_today.iterrows():
-           party_name = row['party']
-           note = row['note']
-        # get current balance from ledger
-           party_entries = ledger_df[ledger_df['party']==party_name]
-           if not party_entries.empty:
-               current_balance = float(party_entries['balance'].iloc[-1])
-               due_amount = round(current_balance * 0.10, 2)
-               st.write(f"{party_name} → ₹ {due_amount:.2f} ({note})")
-           else:
+            party_name = row['party']
+            note = row['note']
+            # get current balance from ledger
+            party_entries = ledger_df[ledger_df['party'] == party_name]
+            if not party_entries.empty:
+                current_balance = float(party_entries['balance'].iloc[-1])
+                due_amount = round(current_balance * 0.10, 2)
+                st.write(f"{party_name} → ₹ {due_amount:.2f} ({note})")
+            else:
                 st.write(f"{party_name} → No balance recorded")
     else:
-      st.info("No payments due today")
+        st.info("No payments due today")
 elif tab == "Billing":
     st.header("💳 Billing System")
 
