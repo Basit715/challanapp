@@ -1257,8 +1257,8 @@ elif tab == "Calculator":
     add_percent = st.number_input("Add Percentage (%)", min_value=0.0, value=1.0, step=0.01)
 
     if mrp > 0:
-        r = (mrp - sub_percent)
-        ptr = r + add_percent
+        r = (mrp - sub_percent/100)
+        ptr = (r + add_percent/100)
         st.write(f"P.T.R is: Rs{ptr}")
     else:
         st.info("Enter a valid MRP to calculate.")
