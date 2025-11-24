@@ -1248,12 +1248,24 @@ elif tab == "Billing":
             st.success("GST Bill Saved!")
             st.session_state.direct_bill_items = []
 elif tab == "Calculator":
-    mrp = st.number_input("Enter your MRP:", min_value = 0.0, value = 0.01, step = 0.1)
+    st.title("Retailer Purchase Rate (PTR) Calculator")
+    st.caption("Adjust percentages to match your system")
+
+# Input fields
+    mrp = st.number_input("Enter MRP (₹):", min_value=0.0, value=0.0, step=0.1)
+    sub_percent = st.number_input("Subtract Percentage (%)", min_value=0.0, value=27.85, step=0.01)
+    add_percent = st.number_input("Add Percentage (%)", min_value=0.0, value=1.0, step=0.01)
+
     if mrp > 0:
-        ptr = round(mrp * 0.7315, 4)
-        st.success(f"P.T.R:, {ptr}")
+    # Step 1: Subtract the percentage
+        after_subtract = mrp - (mrp * sub_percent / 100)
+    # Step 2: Add the percentage
+        ptr = after_subtract + (after_subtract * add_percent / 100)
+        ptr = round(ptr, 2)
+        st.success(f"Calculated PTR: ₹ {ptr}")
     else:
-        st.info("Entet a valid MRP")
+        st.info("Enter a valid MRP to calculate.")
+    
 
 
         
