@@ -1096,12 +1096,12 @@ with tab9:
         st.subheader("🧾 Billing From Challan")
 
         # Load challans
-        challan_list = challan_df['challan_no'].unique().tolist()
+        challan_list = challans_df['challan_no'].unique().tolist()
 
         challan_no = st.selectbox("Select Challan No", challan_list)
 
         if challan_no:
-            challan_items = challan_df[challan_df['challan_no'] == challan_no]
+            challan_items = challans_df[challans_df['challan_no'] == challan_no]
 
             st.dataframe(challan_items, use_container_width=True)
 
