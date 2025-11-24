@@ -1253,15 +1253,14 @@ elif tab == "Calculator":
 
 # Input fields
     mrp = st.number_input("Enter MRP (₹):", min_value=0.0, value=0.0, step=0.1)
-    sub_percent = st.number_input("Subtract Percentage (%)", min_value=0.0, value=27.85, step=0.01)
-    add_percent = st.number_input("Add Percentage (%)", min_value=0.0, value=1.0, step=0.01)
-
-    if mrp > 0:
-        r = mrp - (mrp - sub_percent/100)
-        ptr = r + (r + add_percent/100)
-        st.write(f"P.T.R is: Rs{ptr}")
-    else:
-        st.info("Enter a valid MRP to calculate.")
+    retailer_margin = 0.20
+    stokist_margin = 0.10
+    gst = st.radio("Choose G.S.T", [12, 5])
+    PTR = (mrp - (mrp * (retailer_margin /100)))/(1 + (gst/100))
+    PTS = PTR - ( PTR * stokist_margin / 100)
+    st.write(f"Price to retalier: Rs {PTR}")
+    st.write(f"Price to Stokist: Rs {PTS}")
+    
     
 
 
