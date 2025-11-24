@@ -1030,16 +1030,16 @@ with tab8:
     if st.button("Add Recurring Payment"):
        new_row = {"party":party_sel, "schedule_type":schedule_type, "day_of_week":None, "days_of_month":[], "note":note_rec}
        if schedule_type == "weekly":
-        new_row["day_of_week"] = ["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"].index(day_week)
+          new_row["day_of_week"] = ["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"].index(day_week)
        else:
            try:
               new_row["days_of_month"] = [int(d.strip()) for d in days_input.split(",") if 1 <= int(d.strip()) <= 31]
               if not new_row["days_of_month"]:
-                st.error("Enter valid day numbers (1-31).")
-                st.stop()
+                 st.error("Enter valid day numbers (1-31).")
+                 st.stop()
            except:
-            st.error("Invalid day input")
-            st.stop()
+              st.error("Invalid day input")
+              st.stop()
        recurring_df = pd.concat([recurring_df, pd.DataFrame([new_row])], ignore_index=True)
        save_recurring(recurring_df)
        st.success(f"Recurring payment for {party_sel} added successfully!")
@@ -1069,148 +1069,7 @@ if not due_today.empty:
             st.write(f"{party_name} → No balance recorded")
 else:
     st.info("No payments due today")
-with tab9:
-    st.header("💳 Billing System")
 
-    billing_type = st.radio(
-        "Select Billing Type",
-        ["Billing from Challan (NO GST)", "Direct Billing (WITH GST)"]
-    )
-
-    # ---------------------------------------------------------
-    # 1️⃣ BILLING FROM CHALLAN (NO GST)
-    # ---------------------------------------------------------
-    if billing_type == "Billing from Challan (NO GST)":
-        st.subheader("🧾 Billing From Challan")
-
-        # Load challans
-        challan_list = challans_df['challan_no'].unique().tolist()
-
-        challan_no = st.selectbox("Select Challan No", challan_list)
-
-        if challan_no:
-            challan_items = challans_df[challans_df['challan_no'] == challan_no]
-
-            st.dataframe(challan_items, use_container_width=True)
-
-            # NO GST CALCULATION
-            total_amount = challan_items["amount"].sum()
-            st.markdown(f"### **Total (No GST): ₹ {total_amount}**")
-
-            if st.button("💾 Save Bill (No GST)"):
-                new_entry = {
-                    "challan_no": challan_no,
-                    "date": str(date.today()),
-                    "total_amount": total_amount,
-                    "gst": 0,
-                    "grand_total": total_amount
-                }
-
-                # Save to daybook
-                daybook_df = load_daybook()
-                daybook_df = pd.concat([daybook_df, pd.DataFrame([new_entry])], ignore_index=True)
-                save_daybook(daybook_df)
-
-                st.success("Bill saved (NO GST).")
-        else:
-           st.subheader("🧾 Direct Billing (GST Added)")
-
-    # Select party
-           parties = ledger_df['party'].unique().tolist()
-           selected_party = st.selectbox("Select Customer / Party", parties)
-
-           st.write("### Add Items")
-
-    # Initialize table in session_state
-           if "direct_bill_items" not in st.session_state:
-              st.session_state.direct_bill_items = []
-
-    # Add empty row button
-          if st.button("➕ Add New Row"):
-             st.session_state.direct_bill_items.append({
-                "item": "",
-                "qty": 1,
-                "rate": 0.0,
-                "gst": 0.0,
-                "discount_percent": 0.0
-        })
-
-    # Display editable rows
-         remove_indexes = []
-
-         for i, row in enumerate(st.session_state.direct_bill_items):
-             st.markdown(f"#### Item {i+1}")
-             c = st.columns([3, 1.5, 2, 1.5, 2, 1])
-
-             with c[0]:
-                row["item"] = st.text_input("Item", value=row["item"], key=f"item_{i}")
-             with c[1]:
-                row["qty"] = st.number_input("Qty", min_value=1, value=row["qty"], key=f"qty_{i}")
-             with c[2]:
-                row["rate"] = st.number_input("Rate", min_value=0.0, value=row["rate"], key=f"rate_{i}")
-             with c[3]:
-                row["gst"] = st.number_input("GST %", min_value=0.0, value=row["gst"], key=f"gst_{i}")
-             with c[4]:
-                row["discount_percent"] = st.number_input("Discount %", min_value=0.0, value=row["discount_percent"], key=f"disc_{i}")
-             with c[5]:
-                if st.button("🗑", key=f"del_{i}"):
-                   remove_indexes.append(i)
-
-    # Remove rows
-        for i in sorted(remove_indexes, reverse=True):
-           del st.session_state.direct_bill_items[i]
-
-    # Calculate totals
-       bill_rows = []
-       grand_total = 0
-       total_discount = 0
-       total_gst = 0
-
-       for row in st.session_state.direct_bill_items:
-           amount = row["qty"] * row["rate"]
-           discount_amount = amount * (row["discount_percent"] / 100)
-           amount_after_discount = amount - discount_amount
-           gst_amt = amount_after_discount * row["gst"] / 100
-           total = amount_after_discount + gst_amt
-
-           bill_rows.append({
-             **row,
-             "amount": amount,
-             "discount_amount": discount_amount,
-             "gst_amt": gst_amt,
-             "total": total
-        })
-
-         grand_total += total
-         total_discount += discount_amount
-         total_gst += gst_amt
-
-    # Show Bill Table
-      st.write("### Bill Preview")
-      df = pd.DataFrame(bill_rows)
-      st.dataframe(df, use_container_width=True)
-
-      st.markdown(f"### Total Discount: ₹{total_discount}")
-      st.markdown(f"### Total GST: ₹{total_gst}")
-      st.markdown(f"### **Grand Total: ₹{grand_total}**")
-
-    # Save Bill
-      if st.button("💾 Save Bill (GST Added)"):
-         new_entry = {
-            "party": selected_party,
-            "date": str(date.today()),
-            "total_amount": df["amount"].sum(),
-            "gst": total_gst,
-            "discount": total_discount,
-            "grand_total": grand_total
-        }
-
-        daybook_df = load_daybook()
-        daybook_df = pd.concat([daybook_df, pd.DataFrame([new_entry])], ignore_index=True)
-        save_daybook(daybook_df)
-
-        st.success("Bill saved successfully!")
-        st.session_state.direct_bill_items = []
 
     
     
