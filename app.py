@@ -373,7 +373,7 @@ parties = sorted(ledger_df['party'].dropna().unique().tolist())
 tab = st.selectbox(
     "Select Tab",
     ["Challans", "Medicines (Inventory)", "Reports / Utilities", "Day Book",
-     "Dashboard", "Advertisement", "Ledger", "Recurring Payment", "Billing"]
+     "Dashboard", "Advertisement", "Ledger", "Recurring Payment", "Billing","Calculator"]
 )
 
 # Tab order: Challans | Medicines | Reports | Day Book (user chose B)
@@ -1247,6 +1247,18 @@ elif tab == "Billing":
 
             st.success("GST Bill Saved!")
             st.session_state.direct_bill_items = []
+elif tab == "Calculator":
+    mrp = st.number_input("Enter your MRP:", min_value = "0.0", value = "0.01", step = "0.1")
+    if mrp > 0:
+        ptr = round(mrp * 0.7315, 4)
+        st.success(f"P.T.R:, {ptr}")
+    else:
+        st.info("Entet a valid MRP")
+
+
+        
+    
+    
 
 
     
