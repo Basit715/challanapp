@@ -377,7 +377,7 @@ tab = st.selectbox(
 
 # Tab order: Challans | Medicines | Reports | Day Book (user chose B)
 
-                                                )
+                                                
 # ---------------- TAB: Medicines inventory ----------------
 if tab == "Medicine (Inventory)":
     st.header("📦 Medicines Inventory (batch-level)")
