@@ -1025,7 +1025,6 @@ elif tab == "Ledger":
         save_ledger(ledger_df)
         st.success("Payment added!") 
 elif tab == "Recurring Payment":
-elif tab == "Recurring Payment":
     party_sel = st.selectbox("Select Party", options=parties, key="party_sel_recurring")
     schedule_type = st.radio("Schedule type", options=["weekly","monthly"])
     note_rec = st.text_input("Note (optional)")
