@@ -396,7 +396,7 @@ if "daily_earnings" not in st.session_state:
 tab = st.selectbox(
     "Select Tab",
     ["Challans", "Medicines (Inventory)", "Reports / Utilities", "Day Book",
-     "Dashboard", "Advertisement", "Ledger", "Recurring Payment", "Billing","Calculator"]
+     "Dashboard", "Advertisement", "Ledger", "Recurring Payment", "Billing","Calculator","Daily Earnings"]
 )
 
 # Tab order: Challans | Medicines | Reports | Day Book (user chose B)
