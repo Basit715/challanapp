@@ -369,11 +369,17 @@ st.title(APP_TITLE)
 st.caption("whatsaApp: set default reciepeint phone (country code, no +).Optional")
 wa_default_number = st.text_input("Default whatsapp number e.g; +91 9541292214",value="",key="wa_default_number")
 
+tab = st.selectbox(
+    "Select Tab",
+    ["Challans", "Medicines (Inventory)", "Reports / Utilities", "Day Book",
+     "Dashboard", "Advertisement", "Ledger", "Recurring Payment", "Billing"]
+)
+
 # Tab order: Challans | Medicines | Reports | Day Book (user chose B)
-tab1, tab2, tab3, tab4, tab5,tab6,tab7,tab8,tab9 = st.tabs(["Challans", "Medicines (Inventory)", "Reports / Utilities", "Day Book","📈 Dashboard","💊 Advertisement","LEDGER","Recurring_Payment","Billing"]
+
                                                 )
 # ---------------- TAB: Medicines inventory ----------------
-with tab2:
+if tab == "Medicine (Inventory)":
     st.header("📦 Medicines Inventory (batch-level)")
     colA, colB = st.columns([2,1])
     with colA:
@@ -460,7 +466,7 @@ with tab2:
                         st.rerun()
 
 # ---------------- TAB: Challans ----------------
-with tab1:
+elif tab == "Challans":
     st.header("➕ Create / View Challans")
     col1, col2 = st.columns([2,3])
     with col1:
@@ -748,7 +754,7 @@ if "_edit_challan" in st.session_state:
                     pass
 
 # ---------------- TAB: Reports / Utilities ----------------
-with tab3:
+elif tab == "Reports & Utilities":
     st.header("📊 Reports & Utilities")
     c1,c2 = st.columns(2)
     with c1:
@@ -783,7 +789,7 @@ with tab3:
         st.info("No challans to generate GST report.")
 
 # ---------------- TAB: Day Book ----------------
-with tab4:
+elif tab == "Day Book":
     st.header("📒 Day Book (Cash / Bank / Party payments)")
     st.markdown("Use Day Book to record party payments (Credit) and expenses (Debit).")
     colA, colB = st.columns([2,1])
@@ -882,7 +888,7 @@ with tab4:
     # ---------------- TAB: Dashboard ----------------
 
 
-with tab5:
+elif tab == "Dashboard":
     st.header("📊 Dynamic Dashboard")
     
     # ---------- Challans Analytics ----------
@@ -936,7 +942,7 @@ with tab5:
         st.metric("Net Balance", f"₹ {total_credit-total_debit:.2f}")
     else:
         st.info("No daybook data for analytics.")
-with tab6:
+elif tab == "Advertisement":
     st.header("🌟 Our Medicine Catalog")
 
     # Copy medicine dataframe
@@ -961,7 +967,7 @@ with tab6:
     # Download catalog
     st.download_button("📥 Download Catalog as CSV", med_catalog.to_csv(index=False), "medicines_catalog.csv")
 
-with tab7:
+elif tab == "Ledger":
     st.header("Party Ledger / Balances")
 
     # ---------------- Add New Party ----------------
@@ -1019,7 +1025,7 @@ with tab7:
         ledger_df = pd.concat([ledger_df, pd.DataFrame([new_entry])], ignore_index=True)
         save_ledger(ledger_df)
         st.success("Payment added!")
-with tab8:
+    elif tab == "Recurring Payment":
     party_sel = st.selectbox("Select Party", options=parties,key="party_sel_recurring")
     schedule_type = st.radio("Schedule type", options=["weekly","monthly"])
     note_rec = st.text_input("Note (optional)")
@@ -1069,7 +1075,7 @@ if not due_today.empty:
             st.write(f"{party_name} → No balance recorded")
 else:
     st.info("No payments due today")
-with tab9:
+elif tab == "Billing":
     st.header("💳 Billing System")
 
     billing_type = st.radio(
