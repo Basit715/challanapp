@@ -80,6 +80,8 @@ LEDGER_FILE = os.path.join(DATA_DIR, "ledger.xlsx")
 LEDGER_ID = "1zg8jEUH3wibNvS6BfH6Jh0kcikXbfVsRFWKl9ZDMlSk"
 RECURRING_FILE = os.path.join(DATA_DIR,"recurring.xlsx")
 RECURRING_ID = "1Gti-tD9DlYpDqZUicvzmTBFKTYU-_NabM8i8etY0b4k"
+DAILY_EARNING_FILE = os.path.join(DATA_DIR, "daily_earning.xlsx")
+DAILY_EARNING_ID = "1kx3GUOsWtkKiGbH_S6_983gEm8qkOcFtRWxh9teufx8"
 MAX_ITEMS = 50
 DEFAULT_GST = 5.0
 APP_TITLE = "💊 NEW PharmaWAYS — Challan Manager"
@@ -236,6 +238,8 @@ def save_recurring(df):
         st.error(f"Error saving recurring: {e}")
 
 recurring_df = load_recurring()
+
+        
 if recurring_df.empty:
     starting_entrie = pd.DataFrame([
         {"party":"Party A", "shedule_type":"weekly","day_of_week":0,"days_of_month":[],"note":"Pay every monday 10% of balance"},
@@ -243,7 +247,24 @@ if recurring_df.empty:
     ])
     recurring_df = pd.concat([recurring_df,starting_entrie],ignore_index=True)
     save_recurring(recurring_df)
-
+def load_daily_earnings():
+    try:
+        df = read_excel_from_drive(DAILY_EARNING_ID)
+        return df.fillna("")
+    except:
+        return pd.DataFrame(columns = ["DATE","MRP","PTR","PTS","QUANTITY","EARNING")
+def save_daily_earnings(df):
+    try:
+        write_excel_to_drive(df, DAILY_EARNING_ID)
+    except EXCEPTION as e:
+        st.error(f"Error Saving daily_earning {e}")
+daily_earning_df = load_daily_earnings()
+if daily_earning_df.empty:
+    starting_entries = pd.DataFrame([
+        {"DATE":"25/11/2025","MRP":10,"PTR":6,"PTS":3,"QUANTITY:10","EARNING":30}
+    ])
+    daily_earning_df = pd.concat([daily_earnings_df,starting_entries],ignore_index = True)
+    save_daily_earnings(daily_earning_df)
 # ---------------- Calculations & PDF ----------------
 def compute_row_amount(qty, rate, discount_pct, gst_pct):
     try: q = float(qty)
@@ -370,6 +391,8 @@ st.caption("whatsaApp: set default reciepeint phone (country code, no +).Optiona
 wa_default_number = st.text_input("Default whatsapp number e.g; +91 9541292214",value="",key="wa_default_number")
 # At the top, after loading ledger_df
 parties = sorted(ledger_df['party'].dropna().unique().tolist())
+if "daily_earnings" not in st.session_state:
+    st.session_state.daily_earnings = []  # list to store earnings of each calculation
 tab = st.selectbox(
     "Select Tab",
     ["Challans", "Medicines (Inventory)", "Reports / Utilities", "Day Book",
@@ -1265,6 +1288,44 @@ elif tab == "Calculator":
     st.write(f"Price to retalier: Rs {PTR}")
     st.write(f"Price to Stokist: Rs {PTS}")
     st.write(f"Your earning:{total_earning}")
+    if st.button("Add to Daily Earnings"):
+    daily_earnings_df = load_daily_earnings()
+    new_row = {
+        "Date": date.today().strftime("%Y-%m-%d"),
+        "MRP": mrp,
+        "PTR": PTR,
+        "PTS": PTS,
+        "Quantity": quantity,
+        "Earning": total_earning
+    }
+    daily_earnings_df = pd.concat([daily_earnings_df, pd.DataFrame([new_row])], ignore_index=True)
+    save_daily_earnings(daily_earnings_df)
+    st.success(f"₹ {total_earning} added to daily earnings for {date.today().strftime('%Y-%m-%d')}")
+elif tab == "Daily Earnings":
+    st.title("Daily Earnings Tracker")
+
+    daily_earnings_df = load_daily_earnings()
+
+    if not daily_earnings_df.empty:
+        # Select which day's earnings to view
+        selected_date = st.date_input("Select Date", value=date.today())
+        df_day = daily_earnings_df[daily_earnings_df["Date"] == selected_date.strftime("%Y-%m-%d")]
+
+        if not df_day.empty:
+            st.subheader(f"Earnings for {selected_date.strftime('%Y-%m-%d')}")
+            st.dataframe(df_day[["MRP", "PTR", "PTS", "Quantity", "Earning"]])
+            total_day_earnings = df_day["Earning"].sum()
+            st.subheader(f"Total Earnings: ₹ {round(total_day_earnings,2)}")
+        else:
+            st.info("No earnings recorded for this day.")
+        
+        # Optional: delete entries for selected date
+        if st.button("Delete Earnings for this Date"):
+            daily_earnings_df = daily_earnings_df[daily_earnings_df["Date"] != selected_date.strftime("%Y-%m-%d")]
+            save_daily_earnings(daily_earnings_df)
+            st.success("Earnings deleted for selected date.")
+    else:
+        st.info("No earnings recorded yet.")
     
     
 
