@@ -1309,7 +1309,7 @@ elif tab == "Daily Earnings":
     if not daily_earnings_df.empty:
         # Select which day's earnings to view
         selected_date = st.date_input("Select Date", value=date.today())
-        df_day = daily_earnings_df[daily_earnings_df["Date"] == selected_date.strftime("%Y-%m-%d")]
+        df_day = daily_earnings_df[daily_earnings_df["DATE"] == selected_date.strftime("%Y-%m-%d")]
 
         if not df_day.empty:
             st.subheader(f"Earnings for {selected_date.strftime('%Y-%m-%d')}")
