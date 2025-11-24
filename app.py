@@ -1171,6 +1171,7 @@ with tab9:
         if "direct_bill_items" in st.session_state and st.session_state.direct_bill_items:
             df = pd.DataFrame(st.session_state.direct_bill_items)
             st.dataframe(df, use_container_width=True)
+            discount = st.number_input(f"Discount % {i+1}", min_value=0.0, max_value=100.0, value=0.0, key="biiling_diacount")
 
             grand_total = df["total"].sum()
             st.markdown(f"### **Grand Total: ₹{grand_total}**")
@@ -1181,6 +1182,7 @@ with tab9:
                     "date": str(date.today()),
                     "total_amount": grand_total,
                     "gst": df["gst_amt"].sum(),
+                    "discount":discount,
                     "grand_total": grand_total
                 }
 
