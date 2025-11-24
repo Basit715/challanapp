@@ -1257,7 +1257,7 @@ elif tab == "Calculator":
     stokist_margin = 10
     gst = st.radio("Choose G.S.T", [12, 5])
     hPTR = (mrp - (mrp * (retailer_margin /100)))/(1 + (gst/100))
-    PTR = hPTR + (1/100)
+    PTR = round(hPTR * 1.01,2)
     PTS = PTR - ( PTR * stokist_margin / 100)
     st.write(f"Price to retalier: Rs {PTR}")
     st.write(f"Price to Stokist: Rs {PTS}")
