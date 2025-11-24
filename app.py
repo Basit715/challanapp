@@ -1145,6 +1145,9 @@ with tab9:
             rate = st.number_input("Rate (₹)", min_value=0.0, value=0.0)
         with cols[3]:
             gst = st.number_input("GST %", min_value=0.0, value=0.0)
+        with cols[4]:
+            discount = st.number_input(f"Discount % {i+1}", min_value=0.0, max_value=100.0, value=0.0, key="biiling_diacount")
+
 
         amount = qty * rate
         gst_amt = amount * gst / 100
@@ -1171,8 +1174,7 @@ with tab9:
         if "direct_bill_items" in st.session_state and st.session_state.direct_bill_items:
             df = pd.DataFrame(st.session_state.direct_bill_items)
             st.dataframe(df, use_container_width=True)
-            discount = st.number_input(f"Discount % {i+1}", min_value=0.0, max_value=100.0, value=0.0, key="biiling_diacount")
-
+            
             grand_total = df["total"].sum()
             st.markdown(f"### **Grand Total: ₹{grand_total}**")
 
