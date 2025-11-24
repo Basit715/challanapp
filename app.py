@@ -1256,11 +1256,15 @@ elif tab == "Calculator":
     retailer_margin = 20
     stokist_margin = 10
     gst = st.radio("Choose G.S.T", [12, 5])
+    quantity = st.number_input("Enter quantity", min_value = 1, value = 1, step = 1)
     hPTR = (mrp - (mrp * (retailer_margin /100)))/(1 + (gst/100))
     PTR = round(hPTR * 1.01,2)
     PTS = round(hPTR - ( hPTR * stokist_margin / 100),2)
+    earning_per_strip = PTR - PTS 
+    total_earning = round(earning_per_strip * quantity, 2)
     st.write(f"Price to retalier: Rs {PTR}")
     st.write(f"Price to Stokist: Rs {PTS}")
+    st.write(f"Your earning:{total_earning}")
     
     
 
