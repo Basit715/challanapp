@@ -490,7 +490,14 @@ with tab1:
         else:
             next_no = 1
         challan_no = st.number_input("Challan No", min_value=1, value=int(next_no), step=1, key="new_challan_no")
-        party = st.text_input("Party Name", key="new_party")
+        party_list = ledger_df["party"].unique().tolist()
+
+        party = st.selectbox(
+           "Party Name",
+            options=party_list,
+            index=None,
+           placeholder="Type or choose a party..."
+          )
         date_val = st.date_input("Date", value=date.today(), key="new_date")
         num_items = st.number_input("Number of items", min_value=1, max_value=MAX_ITEMS, value=1, key="new_num_items")
         new_items = []
