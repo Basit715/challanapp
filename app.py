@@ -1248,7 +1248,7 @@ elif tab == "Billing":
             st.success("GST Bill Saved!")
             st.session_state.direct_bill_items = []
 elif tab == "Calculator":
-    mrp = st.number_input("Enter your MRP:", min_value = "0.0", value = "0.01", step = "0.1")
+    mrp = st.number_input("Enter your MRP:", min_value = 0.0, value = 0.01, step = 0.1)
     if mrp > 0:
         ptr = round(mrp * 0.7315, 4)
         st.success(f"P.T.R:, {ptr}")
