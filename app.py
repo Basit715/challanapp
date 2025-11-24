@@ -1048,32 +1048,32 @@ elif tab == "Recurring Payment":
        recurring_df = pd.concat([recurring_df, pd.DataFrame([new_row])], ignore_index=True)
        save_recurring(recurring_df)
        st.success(f"Recurring payment for {party_sel} added successfully!")
-   today = datetime.today()
-   today_day = today.day        # 1-31
-   today_weekday = today.weekday()  # 0=Monday
+     today = datetime.today()
+     today_day = today.day        # 1-31
+     today_weekday = today.weekday()  # 0=Monday
 
 # Weekly due today
-   weekly_due = recurring_df[(recurring_df['schedule_type']=="weekly") & (recurring_df['day_of_week']==today_weekday)]
+     weekly_due = recurring_df[(recurring_df['schedule_type']=="weekly") & (recurring_df['day_of_week']==today_weekday)]
 # Monthly due today
-   monthly_due = recurring_df[(recurring_df['schedule_type']=="monthly") & (recurring_df['days_of_month'].apply(lambda x: today_day in x if isinstance(x,list) else False))]
+     monthly_due = recurring_df[(recurring_df['schedule_type']=="monthly") & (recurring_df['days_of_month'].apply(lambda x: today_day in x if isinstance(x,list) else False))]
 
-   due_today = pd.concat([weekly_due, monthly_due], ignore_index=True)
+     due_today = pd.concat([weekly_due, monthly_due], ignore_index=True)
 
-   if not due_today.empty:
-       st.subheader("💰 Payments Due Today (10% of Balance)")
-      for _, row in due_today.iterrows():
-        party_name = row['party']
-        note = row['note']
+     if not due_today.empty:
+        st.subheader("💰 Payments Due Today (10% of Balance)")
+        for _, row in due_today.iterrows():
+           party_name = row['party']
+           note = row['note']
         # get current balance from ledger
-        party_entries = ledger_df[ledger_df['party']==party_name]
-        if not party_entries.empty:
-            current_balance = float(party_entries['balance'].iloc[-1])
-            due_amount = round(current_balance * 0.10, 2)
-            st.write(f"{party_name} → ₹ {due_amount:.2f} ({note})")
-        else:
-            st.write(f"{party_name} → No balance recorded")
-   else:
-    st.info("No payments due today")
+           party_entries = ledger_df[ledger_df['party']==party_name]
+           if not party_entries.empty:
+               current_balance = float(party_entries['balance'].iloc[-1])
+               due_amount = round(current_balance * 0.10, 2)
+               st.write(f"{party_name} → ₹ {due_amount:.2f} ({note})")
+           else:
+                st.write(f"{party_name} → No balance recorded")
+    else:
+      st.info("No payments due today")
 elif tab == "Billing":
     st.header("💳 Billing System")
 
