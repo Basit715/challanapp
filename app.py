@@ -84,7 +84,7 @@ DAILY_EARNING_FILE = os.path.join(DATA_DIR, "daily_earning.xlsx")
 DAILY_EARNING_ID = "1kx3GUOsWtkKiGbH_S6_983gEm8qkOcFtRWxh9teufx8"
 MAX_ITEMS = 50
 DEFAULT_GST = 5.0
-APP_TITLE = "💊 NEW PharmaWAYS — Challan Manager"
+APP_TITLE = "💊 NEW PharmaWAYS — WE SELL QUALITY MEDICINES"
 
 # ---------------- Dark theme CSS (modern) ----------------
 st.set_page_config(page_title="Pharma Challan Manager", layout="wide", initial_sidebar_state="auto")
