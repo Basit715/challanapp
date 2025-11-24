@@ -1253,10 +1253,11 @@ elif tab == "Calculator":
 
 # Input fields
     mrp = st.number_input("Enter MRP (₹):", min_value=0.0, value=0.0, step=0.1)
-    retailer_margin = 0.20
-    stokist_margin = 0.10
+    retailer_margin = 20
+    stokist_margin = 10
     gst = st.radio("Choose G.S.T", [12, 5])
-    PTR = (mrp - (mrp * (retailer_margin /100)))/(1 + (gst/100))
+    hPTR = (mrp - (mrp * (retailer_margin /100)))/(1 + (gst/100))
+    PTR = hPTR + (1/100)
     PTS = PTR - ( PTR * stokist_margin / 100)
     st.write(f"Price to retalier: Rs {PTR}")
     st.write(f"Price to Stokist: Rs {PTS}")
