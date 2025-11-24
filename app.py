@@ -1289,14 +1289,14 @@ elif tab == "Calculator":
     st.write(f"Price to Stokist: Rs {PTS}")
     st.write(f"Your earning:{total_earning}")
     if st.button("Add to Daily Earnings"):
-    daily_earnings_df = load_daily_earnings()
-    new_row = {
-        "Date": date.today().strftime("%Y-%m-%d"),
-        "MRP": mrp,
-        "PTR": PTR,
-        "PTS": PTS,
-        "Quantity": quantity,
-        "Earning": total_earning
+        daily_earnings_df = load_daily_earnings()
+        new_row = {
+           "Date": date.today().strftime("%Y-%m-%d"),
+           "MRP": mrp,
+           "PTR": PTR,
+           "PTS": PTS,
+           "Quantity": quantity,
+           "Earning": total_earning
     }
     daily_earnings_df = pd.concat([daily_earnings_df, pd.DataFrame([new_row])], ignore_index=True)
     save_daily_earnings(daily_earnings_df)
