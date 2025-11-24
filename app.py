@@ -261,7 +261,7 @@ def save_daily_earnings(df):
 daily_earning_df = load_daily_earnings()
 if daily_earning_df.empty:
     starting_entries = pd.DataFrame([
-        {"DATE":"25/11/2025","MRP":10,"PTR":6,"PTS":3,"QUANTITY:10","EARNING":30}
+        {"DATE":"25/11/2025","MRP":10,"PTR":6,"PTS":3,"QUANTITY":10,"EARNING":30}
     ])
     daily_earning_df = pd.concat([daily_earnings_df,starting_entries],ignore_index = True)
     save_daily_earnings(daily_earning_df)
