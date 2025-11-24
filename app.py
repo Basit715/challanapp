@@ -754,7 +754,7 @@ if "_edit_challan" in st.session_state:
                     pass
 
 # ---------------- TAB: Reports / Utilities ----------------
-elif tab == "Reports & Utilities":
+elif tab == "Reports / Utilities":
     st.header("📊 Reports & Utilities")
     c1,c2 = st.columns(2)
     with c1:
