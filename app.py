@@ -56,22 +56,7 @@ from urllib.parse import quote_plus
 # -------------------- LOGIN SYSTEM --------------------
 
 # Create session state key
-if "logged_in" not in st.session_state:
-    st.session_state.logged_in = False
-
-# If not logged in, show login UI
-if not st.session_state.logged_in:
-    password = st.text_input("Enter password:", type="password",key="app_input_password")
-
-    if st.button("Login"):
-        if password == st.secrets["APP_PASSWORD"]:
-            st.session_state.logged_in = True
-            st.success("Welcome. You have full access to this app now")
-            st.rerun()
-        else:
-            st.warning("❌ Incorrect password. Access denied.")
-
-    st.stop()  # prevent rest of app from loading
+# prevent rest of app from loading
 
 # If logged in, continue app normally
 
