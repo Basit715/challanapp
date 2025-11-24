@@ -252,7 +252,7 @@ def load_daily_earnings():
         df = read_excel_from_drive(DAILY_EARNING_ID)
         return df.fillna("")
     except:
-        return pd.DataFrame(columns = ["DATE","MRP","PTR","PTS","QUANTITY","EARNING")
+        return pd.DataFrame(columns = ["DATE","MRP","PTR","PTS","QUANTITY","EARNING"])
 def save_daily_earnings(df):
     try:
         write_excel_to_drive(df, DAILY_EARNING_ID)
