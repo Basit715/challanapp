@@ -367,7 +367,7 @@ daybook_df = load_daybook()
 # ---------------- UI ----------------
 st.title(APP_TITLE)
 st.caption("whatsaApp: set default reciepeint phone (country code, no +).Optional")
-wa_default_number = st.text_input("Default whatsapp number e.g; 919541292214",value="",key="wa_default_number")
+wa_default_number = st.text_input("Default whatsapp number e.g; +91 9541292214",value="",key="wa_default_number")
 
 # Tab order: Challans | Medicines | Reports | Day Book (user chose B)
 tab1, tab2, tab3, tab4, tab5,tab6,tab7,tab8,tab9 = st.tabs(["Challans", "Medicines (Inventory)", "Reports / Utilities", "Day Book","📈 Dashboard","💊 Advertisement","LEDGER","Recurring_Payment","Billing"]
@@ -964,73 +964,61 @@ with tab6:
 with tab7:
     st.header("Party Ledger / Balances")
 
-# ---------------- Add New Party ----------------
+    # ---------------- Add New Party ----------------
     st.subheader("➕ Add New Party")
     new_party_name = st.text_input("Party Name", key="new_party_name")
     initial_balance = st.number_input("Initial Balance (₹)", min_value=0.0, value=0.0, key="new_party_balance")
     note = st.text_input("Note / Reference", value="Initial balance", key="new_party_note")
 
     if st.button("Add Party", key="btn_add_party"):
-       if not new_party_name:
-         st.error("Enter party name")
-       else:
-        # Check if party already exists
-          if new_party_name in ledger_df['party'].values:
-             st.warning(f"Party '{new_party_name}' already exists.")
-          else:
-            new_entry = {
-                "entry_id": len(ledger_df)+1,
-                "party": new_party_name,
-                "date": date.today().strftime("%Y-%m-%d"),
-                "type": "initial",
-                "amount": initial_balance,
-                "balance": initial_balance,
-                "note": note
-            }
-            ledger_df = pd.concat([ledger_df, pd.DataFrame([new_entry])], ignore_index=True)
-            save_ledger(ledger_df)
-            st.success(f"Party '{new_party_name}' added with initial balance ₹ {initial_balance:.2f}")
-            st.experimental_rerun()
+        if not new_party_name:
+            st.error("Enter party name")
+        else:
+            if new_party_name in ledger_df['party'].values:
+                st.warning(f"Party '{new_party_name}' already exists.")
+            else:
+                new_entry = {
+                    "entry_id": len(ledger_df)+1,
+                    "party": new_party_name,
+                    "date": date.today().strftime("%Y-%m-%d"),
+                    "type": "initial",
+                    "amount": initial_balance,
+                    "balance": initial_balance,
+                    "note": note
+                }
+                ledger_df = pd.concat([ledger_df, pd.DataFrame([new_entry])], ignore_index=True)
+                save_ledger(ledger_df)
+                st.success(f"Party '{new_party_name}' added!")
 
-# ---------------- Select Party ----------------
-           parties = sorted(ledger_df['party'].dropna().unique().tolist())
-           if not parties:
-           st.info("No parties in ledger yet. Add a new party above to get started.")
-           else:
-              selected_party = st.selectbox("Select Party", options=parties)
+    # ---------------- Select Party ----------------
+    parties = sorted(ledger_df['party'].dropna().unique().tolist())
+    selected_party = st.selectbox("Select Party", options=parties)
 
-    # Show party entries
-              party_entries = ledger_df[ledger_df['party']==selected_party]
-              if not party_entries.empty:
-                st.dataframe(party_entries[['date','type','amount','balance','note']].sort_values('date'))
-                st.write(f"**Current Balance:** ₹ {party_entries['balance'].iloc[-1]:.2f}")
-              else:
-                st.info("No ledger entries for this party yet.")
-    
+    # ---------------- Show Party Entries ----------------
+    party_entries = ledger_df[ledger_df['party'] == selected_party]
+    st.dataframe(party_entries)
 
     # ---------------- Record Payment ----------------
     st.subheader("💵 Record Payment")
-    payment_party = st.selectbox("Select Party for Payment", options=parties, key="pay_party")
-    payment_date = st.date_input("Payment Date", value=date.today(), key="pay_date")
-    payment_amount = st.number_input("Payment Amount", min_value=0.0, value=0.0, key="pay_amount")
+    payment_party = st.selectbox("Select Party", options=parties, key="pay_party")
+    payment_amount = st.number_input("Payment Amount", min_value=0.0)
     payment_note = st.text_input("Note / Reference", key="pay_note")
 
     if st.button("Add Payment", key="btn_add_payment"):
-        last_balance = float(ledger_df[ledger_df['party']==payment_party]['balance'].iloc[-1])
+        last_balance = float(ledger_df[ledger_df['party'] == payment_party]['balance'].iloc[-1])
         new_balance = last_balance - payment_amount
         new_entry = {
             "entry_id": len(ledger_df)+1,
             "party": payment_party,
-            "date": payment_date.strftime("%Y-%m-%d"),
-            "type": "Payment",
+            "date": date.today().strftime("%Y-%m-%d"),
+            "type": "payment",
             "amount": payment_amount,
             "balance": new_balance,
             "note": payment_note
         }
         ledger_df = pd.concat([ledger_df, pd.DataFrame([new_entry])], ignore_index=True)
         save_ledger(ledger_df)
-        st.success(f"Payment recorded. New balance for {payment_party}: ₹ {new_balance:.2f}")
-        st.rerun()
+        st.success("Payment added!")
 with tab8:
     party_sel = st.selectbox("Select Party", options=parties,key="party_sel_recurring")
     schedule_type = st.radio("Schedule type", options=["weekly","monthly"])
