@@ -1135,78 +1135,98 @@ with tab9:
 parties = ledger_df['party'].unique().tolist()
 selected_party = st.selectbox("Select Customer / Party", parties)
 
-# Add new item row
-cols = st.columns([3, 2, 2, 2, 2])
-with cols[0]:
-    item = st.text_input("Item Name")
-with cols[1]:
-    qty = st.number_input("Qty", min_value=1, value=1)
-with cols[2]:
-    rate = st.number_input("Rate (₹)", min_value=0.0, value=0.0)
-with cols[3]:
-    gst = st.number_input("GST %", min_value=0.0, value=0.0)
-with cols[4]:
-    discount_percent = st.number_input("Discount %", min_value=0.0, value=0.0)
+st.write("### Add Items")
 
-# Calculations
-amount = qty * rate
-discount_amount = amount * (discount_percent / 100)
-amount_after_discount = amount - discount_amount
-gst_amt = amount_after_discount * (gst / 100)
-total = amount_after_discount + gst_amt
+# Initialize table in session_state
+if "direct_bill_items" not in st.session_state:
+    st.session_state.direct_bill_items = []
 
-st.info(
-    f"Amount: ₹{amount} | Discount: ₹{discount_amount} "
-    f"({discount_percent}%) | GST: ₹{gst_amt} | Total: ₹{total}"
-)
-
-if st.button("➕ Add Item"):
-    if "direct_bill_items" not in st.session_state:
-        st.session_state.direct_bill_items = []
-
+# Add empty row button
+if st.button("➕ Add New Row"):
     st.session_state.direct_bill_items.append({
-        "item": item,
-        "qty": qty,
-        "rate": rate,
-        "gst": gst,
-        "discount_percent": discount_percent,
-        "discount_amount": discount_amount,
+        "item": "",
+        "qty": 1,
+        "rate": 0.0,
+        "gst": 0.0,
+        "discount_percent": 0.0
+    })
+
+# Display editable rows
+remove_indexes = []
+
+for i, row in enumerate(st.session_state.direct_bill_items):
+    st.markdown(f"#### Item {i+1}")
+    c = st.columns([3, 1.5, 2, 1.5, 2, 1])
+
+    with c[0]:
+        row["item"] = st.text_input("Item", value=row["item"], key=f"item_{i}")
+    with c[1]:
+        row["qty"] = st.number_input("Qty", min_value=1, value=row["qty"], key=f"qty_{i}")
+    with c[2]:
+        row["rate"] = st.number_input("Rate", min_value=0.0, value=row["rate"], key=f"rate_{i}")
+    with c[3]:
+        row["gst"] = st.number_input("GST %", min_value=0.0, value=row["gst"], key=f"gst_{i}")
+    with c[4]:
+        row["discount_percent"] = st.number_input("Discount %", min_value=0.0, value=row["discount_percent"], key=f"disc_{i}")
+    with c[5]:
+        if st.button("🗑", key=f"del_{i}"):
+            remove_indexes.append(i)
+
+# Remove rows
+for i in sorted(remove_indexes, reverse=True):
+    del st.session_state.direct_bill_items[i]
+
+# Calculate totals
+bill_rows = []
+grand_total = 0
+total_discount = 0
+total_gst = 0
+
+for row in st.session_state.direct_bill_items:
+    amount = row["qty"] * row["rate"]
+    discount_amount = amount * (row["discount_percent"] / 100)
+    amount_after_discount = amount - discount_amount
+    gst_amt = amount_after_discount * row["gst"] / 100
+    total = amount_after_discount + gst_amt
+
+    bill_rows.append({
+        **row,
         "amount": amount,
-        "amount_after_discount": amount_after_discount,
+        "discount_amount": discount_amount,
         "gst_amt": gst_amt,
         "total": total
     })
 
-# Show added items
-st.subheader("Bill Items")
-if "direct_bill_items" in st.session_state and st.session_state.direct_bill_items:
-    df = pd.DataFrame(st.session_state.direct_bill_items)
-    st.dataframe(df, use_container_width=True)
+    grand_total += total
+    total_discount += discount_amount
+    total_gst += gst_amt
 
-    grand_total = df["total"].sum()
-    total_discount = df["discount_amount"].sum()
+# Show Bill Table
+st.write("### Bill Preview")
+df = pd.DataFrame(bill_rows)
+st.dataframe(df, use_container_width=True)
 
-    st.markdown(f"### **Total Discount: ₹{total_discount}**")
-    st.markdown(f"### **Grand Total: ₹{grand_total}**")
+st.markdown(f"### Total Discount: ₹{total_discount}")
+st.markdown(f"### Total GST: ₹{total_gst}")
+st.markdown(f"### **Grand Total: ₹{grand_total}**")
 
-    if st.button("💾 Save Bill (GST Added)"):
-        new_entry = {
-            "party": selected_party,
-            "date": str(date.today()),
-            "total_amount": df["amount"].sum(),
-            "gst": df["gst_amt"].sum(),
-            "discount": total_discount,
-            "grand_total": grand_total
-        }
+# Save Bill
+if st.button("💾 Save Bill (GST Added)"):
+    new_entry = {
+        "party": selected_party,
+        "date": str(date.today()),
+        "total_amount": df["amount"].sum(),
+        "gst": total_gst,
+        "discount": total_discount,
+        "grand_total": grand_total
+    }
 
-        daybook_df = load_daybook()
-        daybook_df = pd.concat([daybook_df, pd.DataFrame([new_entry])], ignore_index=True)
-        save_daybook(daybook_df)
+    daybook_df = load_daybook()
+    daybook_df = pd.concat([daybook_df, pd.DataFrame([new_entry])], ignore_index=True)
+    save_daybook(daybook_df)
 
-        st.success("Bill saved (WITH GST).")
-        st.session_state.direct_bill_items = []
-else:
-    st.warning("No items added.")
+    st.success("Bill saved successfully!")
+    st.session_state.direct_bill_items = []
     
        
 # ---------------- Save final state (ensure persisted) ----------------
