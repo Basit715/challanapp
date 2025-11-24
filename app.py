@@ -1069,6 +1069,166 @@ if not due_today.empty:
             st.write(f"{party_name} → No balance recorded")
 else:
     st.info("No payments due today")
+with tab9:
+    st.header("💳 Billing System")
+
+    billing_type = st.radio(
+        "Select Billing Type",
+        ["Billing from Challans (NO GST)", "Direct Billing (WITH GST)"]
+    )
+
+    # ==============================================================
+    # 1️⃣ BILLING FROM CHALLANS (NO GST)
+    # ==============================================================
+    if billing_type == "Billing from Challans (NO GST)":
+
+        st.subheader("📄 Merge Multiple Challans (NO GST)")
+
+        # Step 1: Select Party
+        parties = sorted(challans_df["party"].dropna().unique().tolist())
+        party_sel = st.selectbox("Select Party", parties)
+
+        # Step 2: Select multiple challans of party
+        party_challans = challans_df[challans_df["party"] == party_sel]["challan_no"].unique().tolist()
+
+        challan_selected = st.multiselect("Select Challans to Merge", party_challans)
+
+        if challan_selected:
+            # Filter items from selected challans
+            merged_items = challans_df[challans_df["challan_no"].isin(challan_selected)]
+
+            st.write("### Merged Items")
+            st.dataframe(merged_items, use_container_width=True)
+
+            total_amount = merged_items["amount"].sum()
+
+            st.markdown(f"### **Total (No GST): ₹{total_amount}**")
+
+            if st.button("💾 Save Bill (NO GST)"):
+                new_entry = {
+                    "party": party_sel,
+                    "challans": ",".join(challan_selected),
+                    "date": str(date.today()),
+                    "total_amount": total_amount,
+                    "gst": 0,
+                    "discount": 0,
+                    "grand_total": total_amount
+                }
+
+                daybook_df = load_daybook()
+                daybook_df = pd.concat([daybook_df, pd.DataFrame([new_entry])], ignore_index=True)
+                save_daybook(daybook_df)
+
+                st.success("Bill saved successfully (NO GST).")
+
+    # ==============================================================
+    # 2️⃣ DIRECT BILLING (WITH GST)
+    # ==============================================================
+    else:
+        st.subheader("🧾 Direct Billing (GST + Discount)")
+
+        # Select Party
+        parties = ledger_df["party"].unique().tolist()
+        selected_party = st.selectbox("Select Customer / Party", parties)
+
+        st.write("### Add Items")
+
+        # Initialize blank rows
+        if "direct_bill_items" not in st.session_state:
+            st.session_state.direct_bill_items = []
+
+        # Add new item row
+        if st.button("➕ Add Item Row"):
+            st.session_state.direct_bill_items.append({
+                "item": "",
+                "batch": "",
+                "mrp": 0.0,
+                "qty": 1,
+                "rate": 0.0,
+                "discount_percent": 0.0,
+                "gst": 0.0
+            })
+
+        remove_rows = []
+
+        for i, row in enumerate(st.session_state.direct_bill_items):
+            st.markdown(f"#### Item {i+1}")
+            c = st.columns([2, 2, 1.5, 1, 1.5, 1, 1])
+
+            with c[0]:
+                row["item"] = st.text_input("Item", row["item"], key=f"item_{i}")
+            with c[1]:
+                row["batch"] = st.text_input("Batch", row["batch"], key=f"batch_{i}")
+            with c[2]:
+                row["mrp"] = st.number_input("MRP", min_value=0.0, value=row["mrp"], key=f"mrp_{i}")
+            with c[3]:
+                row["qty"] = st.number_input("Qty", min_value=1, value=row["qty"], key=f"qty_{i}")
+            with c[4]:
+                row["rate"] = st.number_input("Rate", min_value=0.0, value=row["rate"], key=f"rate_{i}")
+            with c[5]:
+                row["discount_percent"] = st.number_input("Discount %", min_value=0.0, value=row["discount_percent"], key=f"disc_{i}")
+            with c[6]:
+                row["gst"] = st.number_input("GST %", min_value=0.0, value=row["gst"], key=f"gst_{i}")
+
+            # Delete row
+            if st.button("🗑", key=f"del_{i}"):
+                remove_rows.append(i)
+
+        # Remove rows
+        for i in sorted(remove_rows, reverse=True):
+            del st.session_state.direct_bill_items[i]
+
+        # Calculate totals
+        calculated_rows = []
+        total_discount = 0
+        total_gst = 0
+        grand_total = 0
+
+        for r in st.session_state.direct_bill_items:
+            amount = r["qty"] * r["rate"]
+            discount_amt = amount * r["discount_percent"] / 100
+            amount_after_discount = amount - discount_amt
+            gst_amt = amount_after_discount * r["gst"] / 100
+            total = amount_after_discount + gst_amt
+
+            calculated_rows.append({
+                **r,
+                "amount": amount,
+                "discount_amt": discount_amt,
+                "gst_amt": gst_amt,
+                "total": total
+            })
+
+            total_discount += discount_amt
+            total_gst += gst_amt
+            grand_total += total
+
+        # Show table
+        st.write("### Bill Preview")
+        df = pd.DataFrame(calculated_rows)
+        st.dataframe(df, use_container_width=True)
+
+        st.markdown(f"### Total Discount: ₹{total_discount}")
+        st.markdown(f"### Total GST: ₹{total_gst}")
+        st.markdown(f"### **Grand Total: ₹{grand_total}**")
+
+        # Save Bill
+        if st.button("💾 Save Bill (GST Added)"):
+            new_entry = {
+                "party": selected_party,
+                "date": str(date.today()),
+                "total_amount": df["amount"].sum(),
+                "gst": total_gst,
+                "discount": total_discount,
+                "grand_total": grand_total
+            }
+
+            daybook_df = load_daybook()
+            daybook_df = pd.concat([daybook_df, pd.DataFrame([new_entry])], ignore_index=True)
+            save_daybook(daybook_df)
+
+            st.success("GST Bill Saved!")
+            st.session_state.direct_bill_items = []
 
 
     
