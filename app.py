@@ -965,19 +965,19 @@ with tab7:
     st.header("Party Ledger / Balances")
 
 # ---------------- Add New Party ----------------
-st.subheader("➕ Add New Party")
-new_party_name = st.text_input("Party Name", key="new_party_name")
-initial_balance = st.number_input("Initial Balance (₹)", min_value=0.0, value=0.0, key="new_party_balance")
-note = st.text_input("Note / Reference", value="Initial balance", key="new_party_note")
+    st.subheader("➕ Add New Party")
+    new_party_name = st.text_input("Party Name", key="new_party_name")
+    initial_balance = st.number_input("Initial Balance (₹)", min_value=0.0, value=0.0, key="new_party_balance")
+    note = st.text_input("Note / Reference", value="Initial balance", key="new_party_note")
 
-if st.button("Add Party", key="btn_add_party"):
-    if not new_party_name:
-        st.error("Enter party name")
-    else:
+    if st.button("Add Party", key="btn_add_party"):
+       if not new_party_name:
+         st.error("Enter party name")
+       else:
         # Check if party already exists
-        if new_party_name in ledger_df['party'].values:
-            st.warning(f"Party '{new_party_name}' already exists.")
-        else:
+          if new_party_name in ledger_df['party'].values:
+             st.warning(f"Party '{new_party_name}' already exists.")
+          else:
             new_entry = {
                 "entry_id": len(ledger_df)+1,
                 "party": new_party_name,
@@ -993,19 +993,19 @@ if st.button("Add Party", key="btn_add_party"):
             st.experimental_rerun()
 
 # ---------------- Select Party ----------------
-parties = sorted(ledger_df['party'].dropna().unique().tolist())
-if not parties:
-    st.info("No parties in ledger yet. Add a new party above to get started.")
-else:
-    selected_party = st.selectbox("Select Party", options=parties)
+           parties = sorted(ledger_df['party'].dropna().unique().tolist())
+           if not parties:
+           st.info("No parties in ledger yet. Add a new party above to get started.")
+           else:
+              selected_party = st.selectbox("Select Party", options=parties)
 
     # Show party entries
-    party_entries = ledger_df[ledger_df['party']==selected_party]
-    if not party_entries.empty:
-        st.dataframe(party_entries[['date','type','amount','balance','note']].sort_values('date'))
-        st.write(f"**Current Balance:** ₹ {party_entries['balance'].iloc[-1]:.2f}")
-    else:
-        st.info("No ledger entries for this party yet.")
+              party_entries = ledger_df[ledger_df['party']==selected_party]
+              if not party_entries.empty:
+                st.dataframe(party_entries[['date','type','amount','balance','note']].sort_values('date'))
+                st.write(f"**Current Balance:** ₹ {party_entries['balance'].iloc[-1]:.2f}")
+              else:
+                st.info("No ledger entries for this party yet.")
     
 
     # ---------------- Record Payment ----------------
