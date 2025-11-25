@@ -1213,6 +1213,12 @@ with tab9:
 
         for i, row in enumerate(st.session_state.direct_bill_items):
             medicines_df = load_medicines()
+            row = medicines_df[medicines_df["item"] == selected_item]
+            if not row.empty:
+                mrp = row.iloc[0]["mrp"]
+                rate = row.iloc[0]["rate"]
+                gst = row.iloc[0]['gst']
+                batch = row.iloc[0]['batch']
             st.markdown(f"#### Item {i+1}")
             c = st.columns([2, 2, 1.5, 1, 1.5, 1, 1])
 
@@ -1241,15 +1247,15 @@ with tab9:
                     row["batch"] = selected_batch
     
             with c[2]:
-                row["mrp"] = st.number_input("MRP", min_value=0.0, value=row["mrp"], key=f"mrp_{i}")
+                mrp = st.number_input("MRP", min_value=0.0, value=row["mrp"], key=f"mrp_{i}")
             with c[3]:
-                row["qty"] = st.number_input("Qty", min_value=1, value=row["qty"], key=f"qty_{i}")
+                row['qty'] = st.number_input("Qty", min_value=1, value=row["qty"], key=f"qty_{i}")
             with c[4]:
-                row["rate"] = st.number_input("Rate", min_value=0.0, value=row["rate"], key=f"rate_{i}")
+                rate = st.number_input("Rate", min_value=0.0, value=row["rate"], key=f"rate_{i}")
             with c[5]:
                 row["discount_percent"] = st.number_input("Discount %", min_value=0.0, value=row["discount_percent"], key=f"disc_{i}")
             with c[6]:
-                row["gst"] = st.number_input("GST %", min_value=0.0, value=row["gst"], key=f"gst_{i}")
+                gst = st.number_input("GST %", min_value=0.0, value=row["gst"], key=f"gst_{i}")
 
             # Delete row
             if st.button("🗑", key=f"del_{i}"):
