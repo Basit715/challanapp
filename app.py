@@ -15,8 +15,8 @@ def read_excel_from_drive(file_id):
     try:
         service = gdrive_service()
         request = service.files().export_media(
-            FILE_ID = file_id,
-            mimeType = "application/vnd.openxmlformats.officedocument.spreadsheetml.sheet"
+                    fileId=file_id,
+                    mimeType = "application/vnd.openxmlformats.officedocument.spreadsheetml.sheet"
         )
         buffer = io.BytesIO()
         downloader = MediaIoBaseDownload(buffer,request)
