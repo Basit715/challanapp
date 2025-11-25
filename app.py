@@ -1239,7 +1239,7 @@ with tab9:
                     st.session_state[f"mrp_{i}"] = float(med["mrp"])
                     st.session_state[f"rate_{i}"] = float(med["rate"])
                     st.session_state[f"gst_{i}"] = float(med["gst"])
-                    st.session_state[f"batch_{i}"] = float(med["batch"])
+                    st.session_state[f"batch_{i}"] = str(med["batch"])
 
                     
                     r["mrp"] = float(med["mrp"])
