@@ -898,16 +898,18 @@ with tab5:
         df = challans_df.copy()
         df["date"] = pd.to_datetime(df["date"], errors="coerce")
         df["month"] = df["date"].dt.to_period("M").astype(str)
+        
         monthly_sales = df.groupby("month")["grand_total"].sum().reset_index()
         top_meds = df.groupby("item")["qty"].sum().sort_values(ascending=False).head(10).reset_index()
         
         col1, col2 = st.columns(2)
         with col1:
-            st.bar_chart(monthly_sales.rename(columns={"month":"index"}).set_index("month"))
+            st.bar_chart(monthly_sales.set_index("month"))
         with col2:
-            st.bar_chart(top_meds.rename(columns={"item":"index"}).set_index("item"))
+            st.bar_chart(top_meds.set_index("item"))
     else:
         st.info("No challans data for analytics.")
+
 
     # ---------- Inventory Analytics ----------
     st.subheader("Inventory Analytics")
