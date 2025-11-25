@@ -274,7 +274,7 @@ def load_bills():
         df = read_excel_from_drive(BILLS_ID)
         return df.fillna("")
     except Exception as e:
-        return pd.DataFrame(columms = ["bill_id", "party", "date", "items", "bill_amount"])
+        return pd.DataFrame(columns = ["bill_id", "party", "date", "items", "bill_amount"])
 def save_bill(df):
     try:
         write_excel_to_drive(df, BILLS_ID)
