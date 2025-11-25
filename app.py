@@ -1186,6 +1186,8 @@ with tab9:
     # ==============================================================
     else:
         st.subheader("🧾 Direct Billing (GST + Discount)")
+        if "direct_bill_items" not in st.session_state:
+            st.session_state.direct_bill_items = []
 
         # Select Party
         parties = ledger_df["party"].unique().tolist()
