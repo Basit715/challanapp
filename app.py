@@ -1358,7 +1358,7 @@ with tab9:
             idx  = ledger_df[ledger_df['party'] == selected_party].index[0]
             ledger_df.at[idx, 'balance'] += grand_total
             ledger_df.at[idx, 'amount'] += grand_total
-            ledger_df.at[last_idx, 'date']  = str(date.today())
+            ledger_df.at[idx, 'date']  = str(date.today())
         else:
             ledger_entry = {
                 "entry_id":len(ledger_df)+1,
