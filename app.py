@@ -1125,50 +1125,10 @@ elif tab == "Billing":
             st.markdown(f"### **Total (No GST): ₹{total_amount}**")
 
             if st.button("💾 Save Bill from Challans"):
-               selected_challans = st.session_state.selected_challans  # assume this is your list
-               bill_total = sum(c['total_amount'] for c in selected_challans)
-
-    # Save to daybook
-               new_bill_entry = {
-                  "party": selected_party,
-                  "date": str(date.today()),
-                  "total_amount": bill_total,
-                  "gst": 0,  # Assuming no GST for challan billing
-                  "discount": 0,
-                  "grand_total": bill_total,
-                  "note": f"Billed from {len(selected_challans)} challans"
-                  }
-               daybook_df = load_daybook()
-               daybook_df = pd.concat([daybook_df, pd.DataFrame([new_bill_entry])], ignore_index=True)
-               save_daybook(daybook_df)
-
-    # --- Update ledger ---
-               ledger_df = load_ledger()
-               if not ledger_df[ledger_df['party'] == selected_party].empty:
-                   last_balance = float(ledger_df[ledger_df['party'] == selected_party]['balance'].iloc[-1])
-               else:
-                   last_balance = 0.0
-
-               new_balance = last_balance + bill_total
-
-               ledger_entry = {
-                   "entry_id": len(ledger_df) + 1,
-                   "party": selected_party,
-                   "date": str(date.today()),
-                   "type": "Credit",
-                   "amount": bill_total,
-                   "balance": new_balance,
-                   "note": f"Billed from {len(selected_challans)} challans"
-                 }
-              ledger_df = pd.concat([ledger_df, pd.DataFrame([ledger_entry])], ignore_index=True)
-              save_ledger(ledger_df)
-
-    # Optionally mark challans as billed
-              for c in selected_challans:
-                  c['billed'] = True
-
-              st.success(f"Challan Bill Saved! Ledger updated. New balance: ₹{new_balance:.2f}")
-
+                
+                
+                
+               
     # ==============================================================
     # 2️⃣ DIRECT BILLING (WITH GST)
     # ==============================================================
