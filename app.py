@@ -1368,8 +1368,8 @@ with tab9:
                 "note":"Direct Bill Gst"
             
             }
-            ledger_df = pd.concat([ledger_df, pd.Dataframe([ledger_entry])],ignore_index = True)
-            save_ledger(ledger_df)
+            ledger_df = pd.concat([ledger_df, pd.DataFrame([ledger_entry])],ignore_index = True)
+        save_ledger(ledger_df)
         medicines_df = load_medicines()
         for r in st.session_state.direct_bill_items:
             item_name = r["item"]
