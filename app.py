@@ -1213,7 +1213,7 @@ with tab9:
 
         for i, row in enumerate(st.session_state.direct_bill_items):
             medicines_df = load_medicines()
-            row = medicines_df[medicines_df["item"] == selected_item]
+            row = medicines_df[medicines_df["name"] == selected_item]
             if not row.empty:
                 mrp = row.iloc[0]["mrp"]
                 rate = row.iloc[0]["rate"]
