@@ -1290,17 +1290,17 @@ with tab9:
             del st.session_state.direct_bill_items[i]
 
         # ---- CALCULATIONS ----
-        calculated_rows = []
-        total_discount = 0
-        total_gst = 0
-        grand_total = 0
+    calculated_rows = []
+    total_discount = 0
+    total_gst = 0
+    grand_total = 0
 
-        for r in st.session_state.direct_bill_items:
-            amount = r["qty"] * r["rate"]
-            discount_amt = amount * r["discount_percent"] / 100
-            amount_after_discount = amount - discount_amt
-            gst_amt = amount_after_discount * r["gst"] / 100
-            total = amount_after_discount + gst_amt
+    for r in st.session_state.direct_bill_items:
+        amount = r["qty"] * r["rate"]
+        discount_amt = amount * r["discount_percent"] / 100
+        amount_after_discount = amount - discount_amt
+        gst_amt = amount_after_discount * r["gst"] / 100
+        total = amount_after_discount + gst_amt
 
     calculated_rows.append({
         **r,
