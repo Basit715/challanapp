@@ -1351,11 +1351,13 @@ with tab9:
 
         # --- Update ledger ---
         ledger_df = load_ledger()
+        ledger_df['party']  = ledger_df['party'].str.strip()
+        selected_party = selected_party.strip()
         party_rows = ledger_df[ledger_df['party'] == selected_party]
-        if not party_rows.empty:
-            last_idx = party_rows.index[-1]
-            ledger_df.at[last_idx, 'balance'] += grand_total
-            ledger_df.at[last_idx, 'amount'] += grand_total
+        if selected_party in ledger_df['party'].values:
+            idx  = ledger_df[ledger_df['party'] == selected_party].index[0]
+            ledger_df.at[idx, 'balance'] += grand_total
+            ledger_df.at[idx, 'amount'] += grand_total
             ledger_df.at[last_idx, 'date']  = str(date.today())
         else:
             ledger_entry = {
@@ -1370,6 +1372,8 @@ with tab9:
             }
             ledger_df = pd.concat([ledger_df, pd.DataFrame([ledger_entry])],ignore_index = True)
         save_ledger(ledger_df)
+
+        #updating stocks 
         medicines_df = load_medicines()
         for r in st.session_state.direct_bill_items:
             item_name = r["item"]
