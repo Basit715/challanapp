@@ -1214,7 +1214,7 @@ with tab9:
             c = st.columns([2, 2, 1.5, 1, 1.5, 1, 1])
 
             with c[0]:
-                item_list = medicines_df["item"].unique().tolist()
+                item_list = medicines_df["name"].unique().tolist()
                 selected_item = st.selectbox(
                     "Item",
                     options=["-- Select --"] + item_list,
