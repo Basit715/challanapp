@@ -281,6 +281,12 @@ def save_bill(df):
     except Exception as e:
         st.error(f"Error saving bill {e}")
 bill_df = load_bills()
+if bill_df.empty:
+    starting_entries = pd.DataFrame([
+        {"bill_id":1, "party":"basit","date":"01/05/2025","items":[{"name":"abc","qty":30,"mrp":10,"rate":21,"total":210}],"bill_amount":1000}
+    ])
+    bill_df = pd.concat([bill_df,starting_entries], ignore_index = True)
+    save_bill(bill_df)
 # ---------------- Calculations & PDF ----------------
 def compute_row_amount(qty, rate, discount_pct, gst_pct):
     try: q = float(qty)
