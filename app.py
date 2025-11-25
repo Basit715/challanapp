@@ -1124,22 +1124,50 @@ elif tab == "Billing":
 
             st.markdown(f"### **Total (No GST): ₹{total_amount}**")
 
-            if st.button("💾 Save Bill (NO GST)"):
-                new_entry = {
-                    "party": party_sel,
-                    "challans": ",".join(challan_selected),
-                    "date": str(date.today()),
-                    "total_amount": total_amount,
-                    "gst": 0,
-                    "discount": 0,
-                    "grand_total": total_amount
-                }
+            if st.button("💾 Save Bill from Challans"):
+               selected_challans = st.session_state.selected_challans  # assume this is your list
+               bill_total = sum(c['total_amount'] for c in selected_challans)
 
-                daybook_df = load_daybook()
-                daybook_df = pd.concat([daybook_df, pd.DataFrame([new_entry])], ignore_index=True)
-                save_daybook(daybook_df)
+    # Save to daybook
+               new_bill_entry = {
+                  "party": selected_party,
+                  "date": str(date.today()),
+                  "total_amount": bill_total,
+                  "gst": 0,  # Assuming no GST for challan billing
+                  "discount": 0,
+                  "grand_total": bill_total,
+                  "note": f"Billed from {len(selected_challans)} challans"
+                  }
+               daybook_df = load_daybook()
+               daybook_df = pd.concat([daybook_df, pd.DataFrame([new_bill_entry])], ignore_index=True)
+               save_daybook(daybook_df)
 
-                st.success("Bill saved successfully (NO GST).")
+    # --- Update ledger ---
+               ledger_df = load_ledger()
+               if not ledger_df[ledger_df['party'] == selected_party].empty:
+                   last_balance = float(ledger_df[ledger_df['party'] == selected_party]['balance'].iloc[-1])
+               else:
+                   last_balance = 0.0
+
+               new_balance = last_balance + bill_total
+
+               ledger_entry = {
+                   "entry_id": len(ledger_df) + 1,
+                   "party": selected_party,
+                   "date": str(date.today()),
+                   "type": "Credit",
+                   "amount": bill_total,
+                   "balance": new_balance,
+                   "note": f"Billed from {len(selected_challans)} challans"
+                 }
+              ledger_df = pd.concat([ledger_df, pd.DataFrame([ledger_entry])], ignore_index=True)
+              save_ledger(ledger_df)
+
+    # Optionally mark challans as billed
+              for c in selected_challans:
+                  c['billed'] = True
+
+              st.success(f"Challan Bill Saved! Ledger updated. New balance: ₹{new_balance:.2f}")
 
     # ==============================================================
     # 2️⃣ DIRECT BILLING (WITH GST)
@@ -1233,22 +1261,45 @@ elif tab == "Billing":
         st.markdown(f"### **Grand Total: ₹{grand_total}**")
 
         # Save Bill
-        if st.button("💾 Save Bill (GST Added)"):
-            new_entry = {
-                "party": selected_party,
-                "date": str(date.today()),
-                "total_amount": df["amount"].sum(),
-                "gst": total_gst,
-                "discount": total_discount,
-                "grand_total": grand_total
-            }
+        # Save Bill
+if st.button("💾 Save Bill (GST Added)"):
+    new_entry = {
+        "party": selected_party,
+        "date": str(date.today()),
+        "total_amount": df["amount"].sum(),
+        "gst": total_gst,
+        "discount": total_discount,
+        "grand_total": grand_total
+    }
 
-            daybook_df = load_daybook()
-            daybook_df = pd.concat([daybook_df, pd.DataFrame([new_entry])], ignore_index=True)
-            save_daybook(daybook_df)
+    # Save to daybook
+    daybook_df = load_daybook()
+    daybook_df = pd.concat([daybook_df, pd.DataFrame([new_entry])], ignore_index=True)
+    save_daybook(daybook_df)
 
-            st.success("GST Bill Saved!")
-            st.session_state.direct_bill_items = []
+    # --- Update ledger ---
+    ledger_df = load_ledger()
+    if not ledger_df[ledger_df['party'] == selected_party].empty:
+        last_balance = float(ledger_df[ledger_df['party'] == selected_party]['balance'].iloc[-1])
+    else:
+        last_balance = 0.0
+
+    new_balance = last_balance + grand_total
+
+    ledger_entry = {
+        "entry_id": len(ledger_df) + 1,
+        "party": selected_party,
+        "date": str(date.today()),
+        "type": "Credit",
+        "amount": grand_total,
+        "balance": new_balance,
+        "note": "Direct GST Bill"
+    }
+    ledger_df = pd.concat([ledger_df, pd.DataFrame([ledger_entry])], ignore_index=True)
+    save_ledger(ledger_df)
+
+    st.success(f"GST Bill Saved! Ledger updated. New balance: ₹{new_balance:.2f}")
+    st.session_state.direct_bill_items = []
 elif tab == "Calculator":
     st.title("Retailer Purchase Rate (PTR) Calculator")
     st.caption("Adjust percentages to match your system")
