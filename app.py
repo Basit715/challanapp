@@ -1365,7 +1365,7 @@ with tab11:
     else:
         st.info("No earnings recorded yet.")
 with tab12:
-    st.tittle("Special Discount")
+    st.title("Special Discount")
     amount = st.number_input("Enter Product Amount (₹)", min_value=0.0)
     discount_percent = st.number_input("Discount (%)", min_value=0.0, max_value=100.0)
 
