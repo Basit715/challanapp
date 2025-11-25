@@ -367,6 +367,9 @@ def daybook_to_pdf_bytes(db_df, title="Day Book"):
         pdf.cell(20,8, str(r["type"])[:10], border=1)
         pdf.cell(60,8, str(r["party_or_payee"])[:30], border=1)
         pdf.cell(40,8, str(r["category"])[:20], border=1)
+        amount = pd.to_numeric(r.get("amount", 0), errors="coerce")
+        if pd.isna(amount):
+            amount = 0
         pdf.cell(30,8, f"{float(r['amount']):.2f}", border=1, align="R")
         pdf.ln()
         if pd.notna(r["amount"]):
