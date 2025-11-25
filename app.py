@@ -370,7 +370,7 @@ def daybook_to_pdf_bytes(db_df, title="Day Book"):
         amount = pd.to_numeric(r.get("amount", 0), errors="coerce")
         if pd.isna(amount):
             amount = 0
-        pdf.cell(30,8, f"{float(r['amount']):.2f}", border=1, align="R")
+        pdf.cell(30,8, f"{amount:.2f}", border=1, align="R")
         pdf.ln()
         if pd.notna(r["amount"]):
             try:
