@@ -1496,7 +1496,7 @@ with tab13:
     party_names = ledger_df["party"].unique().tolist()
     selected_party = st.selectbox("Select Party to edit",["--select--"] + party_names)
     if selected_party != "--select--":
-        party_row = ledger_df[ledger_df["party"] == selected_party].iloc[-1]
+        party_row = ledger_df[ledger_df["party"] == selected_party].iloc[0]
         if "balance" in ledger_df.columns:
             st.markdown(f"**Current balance:** Rs {party_row['balance']}")
         new_part_name = st.text_input("Party Name", value = party_row['party'])
