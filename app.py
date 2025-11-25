@@ -12,24 +12,20 @@ def gdrive_service():
 
     return build("drive","v3",credentials=creds)
 def read_excel_from_drive(file_id):
-    try:
-        service = gdrive_service()
-        request = service.files().export_media(
-                    fileId=file_id,
-                    mimeType = "application/vnd.openxmlformats.officedocument.spreadsheetml.sheet"
-        )
-        buffer = io.BytesIO()
-        downloader = MediaIoBaseDownload(buffer,request)
+    service = gdrive_service()
 
-        done = False
-        while done is False:
-            status,done = downloader.next_chunk()
-        buffer.seek(0)
-        df = pd.read_excel(buffer,engine="openpyxl")
-        return df
-    except Exception as e:
-        st.error(f"Error reading Excel: {e}")
-        return 
+    # Export Google Sheet to Excel
+    data = service.files().export(
+        fileId=file_id,
+        mimeType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    ).execute()
+
+    buffer = io.BytesIO()
+    buffer.write(data)
+    buffer.seek(0)
+
+    df = pd.read_excel(buffer, engine="openpyxl")
+    return df
 def write_excel_to_drive(df, file_id):
     service = gdrive_service()
 
@@ -187,8 +183,6 @@ def save_medicines(df):
         write_excel_to_drive(df,st.secrets['files']['MEDICINE_ID'])
     except Exception as e:
         st.error(f"Error saving medicines {e}")
-med_df = load_medicines()
-print(med_df.head)
 
 def load_daybook():
     try:
@@ -263,7 +257,7 @@ def load_daily_earnings():
 def save_daily_earnings(df):
     try:
         write_excel_to_drive(df, DAILY_EARNING_ID)
-    except Exception as e:
+    except EXCEPTION as e:
         st.error(f"Error Saving daily_earning {e}")
 daily_earning_df = load_daily_earnings()
 if daily_earning_df.empty:
