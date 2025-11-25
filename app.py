@@ -151,7 +151,7 @@ def init_files():
         pd.DataFrame(columns=[
             "entry_id", "date", "type", "party_or_payee", "category", "amount", "note"
         ]).to_excel(DAYBOOK_FILE, index=False, engine="openpyxl")
-
+@st.cache_data
 def load_challans():
     try:
         df = read_excel_from_drive(st.secrets['files']['CHALLAN_ID'])
@@ -168,7 +168,7 @@ def save_challans(df):
         write_excel_to_drive(df,st.secrets['files']['CHALLAN_ID'])
     except Exception as e:
         st.error(f"Error saving medicines {e}")
-
+@st.cache_data
 def load_medicines():
     try:
         df = read_excel_from_drive(st.secrets['files']['MEDICINE_ID'])
@@ -182,7 +182,7 @@ def save_medicines(df):
         write_excel_to_drive(df,st.secrets['files']['MEDICINE_ID'])
     except Exception as e:
         st.error(f"Error saving medicines {e}")
-
+@st.cache_data
 def load_daybook():
     try:
         df = read_excel_from_drive(st.secrets['files']['DAYBOOK_ID'])
@@ -199,7 +199,7 @@ def save_daybook(df):
 
 # ---------------- Ledger Setup ----------------
 
-
+@st.cache_data
 def load_ledger():
     try:
         df = read_excel_from_drive(LEDGER_ID)
@@ -223,6 +223,7 @@ if ledger_df.empty:
     ])
     ledger_df = pd.concat([ledger_df, starting_entries], ignore_index=True)
     save_ledger(ledger_df)
+@st.cache_data
 def load_recurring():
     try:
         df = read_excel_from_drive(RECURRING_ID)
@@ -247,6 +248,7 @@ if recurring_df.empty:
     ])
     recurring_df = pd.concat([recurring_df,starting_entrie],ignore_index=True)
     save_recurring(recurring_df)
+@st.cache_data
 def load_daily_earnings():
     try:
         df = read_excel_from_drive(DAILY_EARNING_ID)
