@@ -1229,7 +1229,7 @@ with tab9:
                     batch_list = medicines_df[medicines_df["item"] == selected_item]["batch"].unique().tolist()
                 else:
                     batch_list = []
-                    selected_batch = st.select_box(
+                    selected_batch = st.selectbox(
                         "Batch",
                         options = ["-- Select --"] + batch_list,
                         index = batch_list.index(row["batch"]) + 1 if row["batch"] in batch_list else 0,
