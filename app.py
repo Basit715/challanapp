@@ -419,6 +419,8 @@ wa_default_number = st.text_input("Default whatsapp number e.g; +91 9541292214",
 parties = sorted(ledger_df['party'].dropna().unique().tolist())
 if "daily_earnings" not in st.session_state:
     st.session_state.daily_earnings = []  # list to store earnings of each calculation
+if 'direct_bill_items' not in st.session_state:
+    st.session_state.direct_bill_items = []
 
 tab1,tab2,tab3,tab4,tab5,tab6,tab7,tab8,tab9,tab10,tab11,tab12,tab13 = st.tabs(["Challans", "Medicines (Inventory)", "Reports / Utilities", "Day Book",
      "Dashboard", "Advertisement", "Ledger", "Recurring Payment", "Billing","Calculator","Daily Earnings","Special Discount","Edit Party / view & Update balance"])
