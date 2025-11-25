@@ -1524,6 +1524,7 @@ with tab14:
               st.write(f"**Bill Id**{bill['bill_id']}")
               st.write(f"**Party**{bill['party']}")
               st.write(f"**Date**{bill['date']}")
+              st.write(f"###Bill Amount{bill['bill_amount']}")
               try:
                   items = json.loads(bill['items'])
                   items_df = pd.DataFrame(items)
