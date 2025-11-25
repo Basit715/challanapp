@@ -393,17 +393,15 @@ wa_default_number = st.text_input("Default whatsapp number e.g; +91 9541292214",
 parties = sorted(ledger_df['party'].dropna().unique().tolist())
 if "daily_earnings" not in st.session_state:
     st.session_state.daily_earnings = []  # list to store earnings of each calculation
-tab = st.selectbox(
-    "Select Tab",
-    ["Challans", "Medicines (Inventory)", "Reports / Utilities", "Day Book",
-     "Dashboard", "Advertisement", "Ledger", "Recurring Payment", "Billing","Calculator","Daily Earnings"]
-)
+
+tab1,tab2,tab3,tab4,tab5,tab6,tab7,tab8,tab9,tab10,tab11 = st.tabs(["Challans", "Medicines (Inventory)", "Reports / Utilities", "Day Book",
+     "Dashboard", "Advertisement", "Ledger", "Recurring Payment", "Billing","Calculator","Daily Earnings"])
 
 # Tab order: Challans | Medicines | Reports | Day Book (user chose B)
 
                                                 
 # ---------------- TAB: Medicines inventory ----------------
-if tab == "Medicines (Inventory)":
+with tab2:
     st.header("📦 Medicines Inventory (batch-level)")
     colA, colB = st.columns([2,1])
     with colA:
@@ -490,7 +488,7 @@ if tab == "Medicines (Inventory)":
                         st.rerun()
 
 # ---------------- TAB: Challans ----------------
-elif tab == "Challans":
+with tab1:
     st.header("➕ Create / View Challans")
     col1, col2 = st.columns([2,3])
     with col1:
@@ -757,7 +755,7 @@ if "_edit_challan" in st.session_state:
                     pass
 
 # ---------------- TAB: Reports / Utilities ----------------
-elif tab == "Reports / Utilities":
+with tab3:
     st.header("📊 Reports & Utilities")
     c1,c2 = st.columns(2)
     with c1:
@@ -792,7 +790,7 @@ elif tab == "Reports / Utilities":
         st.info("No challans to generate GST report.")
 
 # ---------------- TAB: Day Book ----------------
-elif tab == "Day Book":
+with tab4:
     st.header("📒 Day Book (Cash / Bank / Party payments)")
     st.markdown("Use Day Book to record party payments (Credit) and expenses (Debit).")
     colA, colB = st.columns([2,1])
@@ -891,7 +889,7 @@ elif tab == "Day Book":
     # ---------------- TAB: Dashboard ----------------
 
 
-elif tab == "Dashboard":
+with tab5:
     st.header("📊 Dynamic Dashboard")
     
     # ---------- Challans Analytics ----------
@@ -945,7 +943,7 @@ elif tab == "Dashboard":
         st.metric("Net Balance", f"₹ {total_credit-total_debit:.2f}")
     else:
         st.info("No daybook data for analytics.")
-elif tab == "Advertisement":
+with tab6:
     st.header("🌟 Our Medicine Catalog")
 
     # Copy medicine dataframe
@@ -969,7 +967,7 @@ elif tab == "Advertisement":
 
     # Download catalog
     st.download_button("📥 Download Catalog as CSV", med_catalog.to_csv(index=False), "medicines_catalog.csv")
-elif tab == "Ledger":
+with tab7:
     st.header("Party Ledger / Balances")
 
     # ---------------- Add New Party ----------------
@@ -1027,7 +1025,7 @@ elif tab == "Ledger":
         ledger_df = pd.concat([ledger_df, pd.DataFrame([new_entry])], ignore_index=True)
         save_ledger(ledger_df)
         st.success("Payment added!") 
-elif tab == "Recurring Payment":
+with tab8:
     party_sel = st.selectbox("Select Party", options=parties, key="party_sel_recurring")
     schedule_type = st.radio("Schedule type", options=["weekly","monthly"])
     note_rec = st.text_input("Note (optional)")
@@ -1089,7 +1087,7 @@ elif tab == "Recurring Payment":
                 st.write(f"{party_name} → No balance recorded")
     else:
         st.info("No payments due today")
-elif tab == "Billing":
+with tab9:
     st.header("💳 Billing System")
 
     billing_type = st.radio(
@@ -1309,7 +1307,7 @@ elif tab == "Billing":
 
         st.success(f"GST Bill Saved! Ledger updated. New balance: ₹{new_balance:.2f}")
         st.session_state.direct_bill_items = []
-elif tab == "Calculator":
+with tab10:
     st.title("Retailer Purchase Rate (PTR) Calculator")
     st.caption("Adjust percentages to match your system")
 
@@ -1341,7 +1339,7 @@ elif tab == "Calculator":
         save_daily_earnings(daily_earnings_df)
         st.success(f"₹ {total_earning} added to daily earnings for {date.today().strftime('%Y-%m-%d')}")
         
-elif tab == "Daily Earnings":
+with tab11:
     st.title("Daily Earnings Tracker")
 
     daily_earnings_df = load_daily_earnings()
