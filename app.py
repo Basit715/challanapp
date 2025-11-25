@@ -4,11 +4,7 @@ from googleapiclient.http import MediaIoBaseUpload
 from googleapiclient.http import MediaIoBaseDownload
 import io
 import json
-st.sidebar.header("Tools")
-if st.sidebar.button("Clear Cache"):
-    st.cache_data.clear()
-    st.session_state.clear()
-    st.success("cleared cache")
+
 
 from PIL import Image 
 def gdrive_service():
@@ -59,6 +55,11 @@ from datetime import date, datetime
 from fpdf import FPDF
 from io import BytesIO
 from urllib.parse import quote_plus
+st.sidebar.header("Tools")
+if st.sidebar.button("Clear Cache"):
+    st.cache_data.clear()
+    st.session_state.clear()
+    st.success("cleared cache")
 
 # -------------------- LOGIN SYSTEM --------------------
 
