@@ -1,11 +1,11 @@
+# challan_app_with_daybook.py
 from google.oauth2 import service_account
 from googleapiclient.discovery import build
-from googleapiclient.http import MediaIoBaseUpload
 from googleapiclient.http import MediaIoBaseDownload
-import io
-from PIL import Image 
+from googleapiclient.http import MediaIoBaseUpload
+
 def gdrive_service():
-    creds = service_account.Credentials.from_service_account_info(
+    creds = service_account.Credentials.from_service_account_nfo(
         st.secrets['gcp'],
         scopes = ["https://www.googleapis.com/auth/drive"]
     )
@@ -13,38 +13,32 @@ def gdrive_service():
     return build("drive","v3",credentials=creds)
 def read_excel_from_drive(file_id):
     service = gdrive_service()
+    request = service.files().get_media(fileId = file_id)
+    file_data = request.execute()
 
-    # Export Google Sheet to Excel
-    data = service.files().export(
-        fileId=file_id,
-        mimeType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-    ).execute()
-
-    buffer = io.BytesIO()
-    buffer.write(data)
-    buffer.seek(0)
-
-    df = pd.read_excel(buffer, engine="openpyxl")
-    return df
-def write_excel_to_drive(df, file_id):
+    downloader = MediaIoBaseDownload(file_data,request)
+    done = False
+    while not done:
+        status,done = downloader.next_chunk()
+    file_data.seek(0)
+    return pd.read_excel(file_data,engine="openpyxl")
+def write_excel_to_drive(df,file_id):
     service = gdrive_service()
-
-    excel_buffer = io.BytesIO()
-    df.to_excel(excel_buffer, index=False, engine="openpyxl")
+    excel_buffer = io.BytesIo()
+    df.excel(excel_buffer,index=False,engine="openpyxl")
     excel_buffer.seek(0)
-
-    media = MediaIoBaseUpload(
-        excel_buffer,
-        mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-        resumable=False
-    )
+    media = MediaIoBaseUpload(excel_buffer,mimetype = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+    resumable = True
 
     service.files().update(
-        fileId=file_id,
-        media_body=media
+
+        fileId = file_id,
+        media_body = media,
+        
     ).execute()
 
-# challan_app_with_daybook.py
+
+
 import streamlit as st
 import pandas as pd
 import os
@@ -52,21 +46,6 @@ from datetime import date, datetime
 from fpdf import FPDF
 from io import BytesIO
 from urllib.parse import quote_plus
-
-
-# -------------------- LOGIN SYSTEM --------------------
-
-# Create session state key
-# prevent rest of app from loading
-
-# If logged in, continue app normally
-
-
-# Load image from repo
-#img = Image.open("Gemini_Generated_Image_j18vq7j18vq7j18v.png")  # just the filename if in same folder
-#st.image(img,caption = "Basit Pushoo - Developer", width=150)          # adjust size as needed
-
-
 
 
 # ---------------- Config ----------------
@@ -77,15 +56,9 @@ MEDICINES_FILE = os.path.join(DATA_DIR, "medicines.xlsx")
 MEDICINE_ID = "1JeFEFSwd8P2Ekwq1xonc9ENLrR4MdmiujSMNhNgd8yc"
 DAYBOOK_FILE = os.path.join(DATA_DIR, "daybook.xlsx")
 DAYBOOK_ID = "1F4re8JIwfx8B_C9qhAjlhbfUcP6caiDZiM6i-LLc-_8"
-LEDGER_FILE = os.path.join(DATA_DIR, "ledger.xlsx")
-LEDGER_ID = "1zg8jEUH3wibNvS6BfH6Jh0kcikXbfVsRFWKl9ZDMlSk"
-RECURRING_FILE = os.path.join(DATA_DIR,"recurring.xlsx")
-RECURRING_ID = "1Gti-tD9DlYpDqZUicvzmTBFKTYU-_NabM8i8etY0b4k"
-DAILY_EARNING_FILE = os.path.join(DATA_DIR, "daily_earning.xlsx")
-DAILY_EARNING_ID = "1kx3GUOsWtkKiGbH_S6_983gEm8qkOcFtRWxh9teufx8"
 MAX_ITEMS = 50
 DEFAULT_GST = 5.0
-APP_TITLE = "💊 NEW PharmaWAYS — WE SELL QUALITY MEDICINES"
+APP_TITLE = "💊 NEW PharmaWAYS — Challan Manager (BY BASIT PUSHOO)"
 
 # ---------------- Dark theme CSS (modern) ----------------
 st.set_page_config(page_title="Pharma Challan Manager", layout="wide", initial_sidebar_state="auto")
@@ -142,9 +115,9 @@ def init_files():
     if not os.path.exists(MEDICINES_FILE):
         # small preloaded sample
         sample = pd.DataFrame([
-            {"med_id":"M0001","name":"Paracetamol 500mg","batch":"B1001","expiry":"2026-06-30","qty":100,"rate":12.5,"mrp":15.0,"gst":DEFAULT_GST,"use":"Pain and fever"},
-            {"med_id":"M0002","name":"Ciprofloxacin 500mg","batch":"C2001","expiry":"2025-12-31","qty":50,"rate":28.0,"mrp":35.0,"gst":DEFAULT_GST,"use":"Bacterial"},
-            {"med_id":"M0003","name":"Vitamin C 500mg","batch":"V3001","expiry":"2027-01-01","qty":200,"rate":8.0,"mrp":10.0,"gst":DEFAULT_GST,"use":"immunity"},
+            {"med_id":"M0001","name":"Paracetamol 500mg","batch":"B1001","expiry":"2026-06-30","qty":100,"rate":12.5,"mrp":15.0,"gst":DEFAULT_GST},
+            {"med_id":"M0002","name":"Ciprofloxacin 500mg","batch":"C2001","expiry":"2025-12-31","qty":50,"rate":28.0,"mrp":35.0,"gst":DEFAULT_GST},
+            {"med_id":"M0003","name":"Vitamin C 500mg","batch":"V3001","expiry":"2027-01-01","qty":200,"rate":8.0,"mrp":10.0,"gst":DEFAULT_GST},
         ])
         sample.to_excel(MEDICINES_FILE, index=False, engine="openpyxl")
     # daybook
@@ -155,7 +128,7 @@ def init_files():
 
 def load_challans():
     try:
-        df = read_excel_from_drive(st.secrets['files']['CHALLAN_ID'])
+        df = read_excel_from_drive(st.secrets['CHALLAN_ID'])
         return df.fillna("")
     except Exception as e:
         st.error(f"Error loading challans. {e}")
@@ -166,106 +139,39 @@ def load_challans():
 
 def save_challans(df):
     try:
-        write_excel_to_drive(df,st.secrets['files']['CHALLAN_ID'])
+        write_excel_to_drive(df,st.secrets['CHALLANS_ID'])
     except Exception as e:
         st.error(f"Error saving medicines {e}")
 
 def load_medicines():
     try:
-        df = read_excel_from_drive(st.secrets['files']['MEDICINE_ID'])
-        return df.fillna("")
+        df = read_excel_from_drive(st.secrets['MEDICINE_ID'])
+        return df.fillna()
     except Exception as e:
         st.error(f"Error loading medicines {e}")
         return pd.DataFrame(columns=["med_id","name","batch","expiry","qty","rate","mrp","gst"])
-
+med_df = load_medicines()
+print(med_df.head)
 def save_medicines(df):
     try:
-        write_excel_to_drive(df,st.secrets['files']['MEDICINE_ID'])
+        write_excel_to_drive(df,st.secrets['MEDICINE_ID'])
     except Exception as e:
         st.error(f"Error saving medicines {e}")
 
 def load_daybook():
     try:
-        df = read_excel_from_drive(st.secrets['files']['DAYBOOK_ID'])
-        return df.fillna("")
+        df = read_excel_from_drive(st.secrets['DAYBOOK_ID'])
+        return df.fillna()
     except Exception as e:
         st.error(f"Error loading daybook {e}")
         return pd.DataFrame(columns=["entry_id","date","type","party_or_payee","category","amount","note"])
 
 def save_daybook(df):
     try:
-        write_excel_to_drive(df,st.secrets['files']['DAYBOOK_ID'])
+        write_excel_to_drive(df,st.secrets['DAYBOOK_ID'])
     except Exception as e:
         st.error(f"Error loading daybook {e}")
 
-# ---------------- Ledger Setup ----------------
-
-
-def load_ledger():
-    try:
-        df = read_excel_from_drive(LEDGER_ID)
-        return df.fillna("")
-    except:
-        return pd.DataFrame(columns=["entry_id","party","date","type","amount","balance","note"])
-
-def save_ledger(df):
-    try:
-        write_excel_to_drive(df, LEDGER_ID)
-    except Exception as e:
-        st.error(f"Error saving ledger: {e}")
-
-ledger_df = load_ledger()
-# ---------------- Initialize ledger with starting balances if empty ----------------
-if ledger_df.empty:
-    # Example: add starting balances for existing parties
-    starting_entries = pd.DataFrame([
-        {"entry_id":1,"party":"Party A","date":"2025-01-01","type":"Starting Balance","amount":0.0,"balance":1000.0,"note":"Initial balance"},
-        {"entry_id":2,"party":"Party B","date":"2025-01-01","type":"Starting Balance","amount":0.0,"balance":500.0,"note":"Initial balance"}
-    ])
-    ledger_df = pd.concat([ledger_df, starting_entries], ignore_index=True)
-    save_ledger(ledger_df)
-def load_recurring():
-    try:
-        df = read_excel_from_drive(RECURRING_ID)
-        return df.fillna("")
-    except:
-        # Initialize empty table
-        return pd.DataFrame(columns=["party","schedule_type","day_of_week","days_of_month","note"])
-
-def save_recurring(df):
-    try:
-        write_excel_to_drive(df, RECURRING_ID)
-    except Exception as e:
-        st.error(f"Error saving recurring: {e}")
-
-recurring_df = load_recurring()
-
-        
-if recurring_df.empty:
-    starting_entrie = pd.DataFrame([
-        {"party":"Party A", "shedule_type":"weekly","day_of_week":0,"days_of_month":[],"note":"Pay every monday 10% of balance"},
-        {"party":"Party B", "schedule_type":"monthly","day_of_week":None,"days_of_month":[1,10,20],"note":"Pay on ist,10th,20th 10% of balance"}
-    ])
-    recurring_df = pd.concat([recurring_df,starting_entrie],ignore_index=True)
-    save_recurring(recurring_df)
-def load_daily_earnings():
-    try:
-        df = read_excel_from_drive(DAILY_EARNING_ID)
-        return df.fillna("")
-    except:
-        return pd.DataFrame(columns = ["DATE","MRP","PTR","PTS","QUANTITY","EARNING"])
-def save_daily_earnings(df):
-    try:
-        write_excel_to_drive(df, DAILY_EARNING_ID)
-    except EXCEPTION as e:
-        st.error(f"Error Saving daily_earning {e}")
-daily_earning_df = load_daily_earnings()
-if daily_earning_df.empty:
-    starting_entries = pd.DataFrame([
-        {"DATE":"25/11/2025","MRP":10,"PTR":6,"PTS":3,"QUANTITY":10,"EARNING":30}
-    ])
-    daily_earning_df = pd.concat([daily_earning_df,starting_entries],ignore_index = True)
-    save_daily_earnings(daily_earning_df)
 # ---------------- Calculations & PDF ----------------
 def compute_row_amount(qty, rate, discount_pct, gst_pct):
     try: q = float(qty)
@@ -368,10 +274,7 @@ def daybook_to_pdf_bytes(db_df, title="Day Book"):
         pdf.cell(20,8, str(r["type"])[:10], border=1)
         pdf.cell(60,8, str(r["party_or_payee"])[:30], border=1)
         pdf.cell(40,8, str(r["category"])[:20], border=1)
-        amount = pd.to_numeric(r.get("amount", 0), errors="coerce")
-        if pd.isna(amount):
-            amount = 0
-        pdf.cell(30,8, f"{amount:.2f}", border=1, align="R")
+        pdf.cell(30,8, f"{float(r['amount']):.2f}", border=1, align="R")
         pdf.ln()
         if pd.notna(r["amount"]):
             try:
@@ -392,18 +295,11 @@ daybook_df = load_daybook()
 # ---------------- UI ----------------
 st.title(APP_TITLE)
 st.caption("whatsaApp: set default reciepeint phone (country code, no +).Optional")
-wa_default_number = st.text_input("Default whatsapp number e.g; +91 9541292214",value="",key="wa_default_number")
-# At the top, after loading ledger_df
-parties = sorted(ledger_df['party'].dropna().unique().tolist())
-if "daily_earnings" not in st.session_state:
-    st.session_state.daily_earnings = []  # list to store earnings of each calculation
-
-tab1,tab2,tab3,tab4,tab5,tab6,tab7,tab8,tab9,tab10,tab11,tab12 = st.tabs(["Challans", "Medicines (Inventory)", "Reports / Utilities", "Day Book",
-     "Dashboard", "Advertisement", "Ledger", "Recurring Payment", "Billing","Calculator","Daily Earnings","Special Discount"])
+wa_default_number = st.text_input("Default whatsapp number e.g; 919541292214",value="",key="wa_default_number")
 
 # Tab order: Challans | Medicines | Reports | Day Book (user chose B)
+tab1, tab2, tab3, tab4 = st.tabs(["Challans", "Medicines (Inventory)", "Reports / Utilities", "Day Book"])
 
-                                                
 # ---------------- TAB: Medicines inventory ----------------
 with tab2:
     st.header("📦 Medicines Inventory (batch-level)")
@@ -412,8 +308,6 @@ with tab2:
         st.subheader("Add new batch")
         med_name = st.text_input("Medicine name", key="med_add_name")
         batch = st.text_input("Batch", key="med_add_batch")
-        use = st.text_input("Use / Description",key="med_add_use")
-                            
         expiry = ""
         if st.checkbox("Set expiry?", key="chk_med_exp"):
             expiry = st.date_input("Expiry (optional)", value=date.today(), key="med_add_expiry").strftime("%Y-%m-%d")
@@ -434,8 +328,7 @@ with tab2:
                     "qty": qty,
                     "rate": rate,
                     "mrp": mrp,
-                    "gst": gst,
-                    "use": use
+                    "gst": gst
                 }
                 med_df = pd.concat([med_df, pd.DataFrame([new_row])], ignore_index=True)
                 save_medicines(med_df)
@@ -489,7 +382,7 @@ with tab2:
                         save_medicines(med_df)
                         st.success("Deleted batch.")
                         del st.session_state["_edit_med_idx"]
-                        st.rerun()
+                        st.experimental_rerun()
 
 # ---------------- TAB: Challans ----------------
 with tab1:
@@ -507,14 +400,7 @@ with tab1:
         else:
             next_no = 1
         challan_no = st.number_input("Challan No", min_value=1, value=int(next_no), step=1, key="new_challan_no")
-        party_list = ledger_df["party"].unique().tolist()
-
-        party = st.selectbox(
-           "Party Name",
-            options=party_list,
-            index=None,
-           placeholder="Type or choose a party..."
-          )
+        party = st.text_input("Party Name", key="new_party")
         date_val = st.date_input("Date", value=date.today(), key="new_date")
         num_items = st.number_input("Number of items", min_value=1, max_value=MAX_ITEMS, value=1, key="new_num_items")
         new_items = []
@@ -890,618 +776,7 @@ with tab4:
                 st.experimental_rerun()
             else:
                 st.warning("Type YES to confirm.")
-    # ---------------- TAB: Dashboard ----------------
 
-
-with tab5:
-    st.header("📊 Dynamic Dashboard")
-    
-    # ---------- Challans Analytics ----------
-    st.subheader("Challans Analytics")
-    if not challans_df.empty:
-        df = challans_df.copy()
-        df["date"] = pd.to_datetime(df["date"], errors="coerce")
-        df["month"] = df["date"].dt.to_period("M").astype(str)
-        
-        monthly_sales = df.groupby("month")["grand_total"].sum().reset_index()
-        top_meds = df.groupby("item")["qty"].sum().sort_values(ascending=False).head(10).reset_index()
-        
-        col1, col2 = st.columns(2)
-        with col1:
-            st.bar_chart(monthly_sales.set_index("month"))
-        with col2:
-            st.bar_chart(top_meds.set_index("item"))
-    else:
-        st.info("No challans data for analytics.")
-
-
-    # ---------- Inventory Analytics ----------
-    st.subheader("Inventory Analytics")
-    if not med_df.empty:
-        low_stock = med_df[med_df["qty"]<10]
-        col1, col2 = st.columns([2,1])
-        with col1:
-            stock_chart = med_df.groupby("name")["qty"].sum().sort_values(ascending=False)
-            st.bar_chart(stock_chart)
-        with col2:
-            st.write("Low Stock (<10 units)")
-            st.dataframe(low_stock[["name","batch","qty"]])
-    else:
-        st.info("No medicines data for inventory analytics.")
-
-    # ---------- Daybook Analytics ----------
-    st.subheader("Day Book Analytics")
-    if not daybook_df.empty:
-        db = daybook_df.copy()
-        db["date"] = pd.to_datetime(db["date"], errors="coerce")
-        daily_credit = db[db["type"]=="CREDIT"].groupby("date")["amount"].sum().reset_index()
-        daily_debit = db[db["type"]=="DEBIT"].groupby("date")["amount"].sum().reset_index()
-        col1, col2 = st.columns([1,1])
-        with col1:
-            st.line_chart(daily_credit.set_index("date"))
-        with col2:
-            st.line_chart(daily_debit.set_index("date"))
-        
-        total_credit = daily_credit["amount"].sum()
-        total_debit = daily_debit["amount"].sum()
-        st.metric("Total Credit", f"₹ {total_credit:.2f}")
-        st.metric("Total Debit", f"₹ {total_debit:.2f}")
-        st.metric("Net Balance", f"₹ {total_credit-total_debit:.2f}")
-    else:
-        st.info("No daybook data for analytics.")
-with tab6:
-    st.header("🌟 Our Medicine Catalog")
-
-    # Copy medicine dataframe
-    med_catalog = med_df.copy()
-
-    # Search box
-    search_term = st.text_input("Search medicine or use:", key="adv_search")
-    if search_term:
-        med_catalog = med_catalog[
-            med_catalog['name'].str.contains(search_term, case=False, na=False) |
-            med_catalog['batch'].str.contains(search_term, case=False, na=False)
-        ]
-
-    # Filter by category (if we add categories later)
-    st.subheader("Medicine List")
-    for idx, row in med_catalog.iterrows():
-        st.markdown(f"**{row['name']}**  |  Batch: {row['batch']}  |  Price: ₹{row['rate']:.2f}")
-        st.write(f"**Use:**{row.get('use','N/A')}")
-        st.write(f"Expiry: {row.get('expiry','N/A')}, Stock: {row.get('qty',0)}")
-        st.markdown("---")
-
-    # Download catalog
-    st.download_button("📥 Download Catalog as CSV", med_catalog.to_csv(index=False), "medicines_catalog.csv")
-with tab7:
-    st.header("Party Ledger / Balances")
-
-    # ---------------- Add New Party ----------------
-    st.subheader("➕ Add New Party")
-    new_party_name = st.text_input("Party Name", key="new_party_name")
-    initial_balance = st.number_input("Initial Balance (₹)", min_value=0.0, value=0.0, key="new_party_balance")
-    note = st.text_input("Note / Reference", value="Initial balance", key="new_party_note")
-
-    if st.button("Add Party", key="btn_add_party"):
-        if not new_party_name:
-            st.error("Enter party name")
-        else:
-            if new_party_name in ledger_df['party'].values:
-                st.warning(f"Party '{new_party_name}' already exists.")
-            else:
-                new_entry = {
-                    "entry_id": len(ledger_df)+1,
-                    "party": new_party_name,
-                    "date": date.today().strftime("%Y-%m-%d"),
-                    "type": "initial",
-                    "amount": initial_balance,
-                    "balance": initial_balance,
-                    "note": note
-                }
-                ledger_df = pd.concat([ledger_df, pd.DataFrame([new_entry])], ignore_index=True)
-                save_ledger(ledger_df)
-                st.success(f"Party '{new_party_name}' added!")
-
-    # ---------------- Select Party ----------------
-    parties = sorted(ledger_df['party'].dropna().unique().tolist())
-    selected_party = st.selectbox("Select Party", options=parties)
-
-    # ---------------- Show Party Entries ----------------
-    party_entries = ledger_df[ledger_df['party'] == selected_party]
-    st.dataframe(party_entries)
-
-    # ---------------- Record Payment ----------------
-    st.subheader("💵 Record Payment")
-    payment_party = st.selectbox("Select Party", options=parties, key="pay_party")
-    payment_amount = st.number_input("Payment Amount", min_value=0.0)
-    payment_note = st.text_input("Note / Reference", key="pay_note")
-
-    if st.button("Add Payment", key="btn_add_payment"):
-        last_balance = float(ledger_df[ledger_df['party'] == payment_party]['balance'].iloc[-1])
-        new_balance = last_balance - payment_amount
-        new_entry = {
-            "entry_id": len(ledger_df)+1,
-            "party": payment_party,
-            "date": date.today().strftime("%Y-%m-%d"),
-            "type": "payment",
-            "amount": payment_amount,
-            "balance": new_balance,
-            "note": payment_note
-        }
-        ledger_df = pd.concat([ledger_df, pd.DataFrame([new_entry])], ignore_index=True)
-        save_ledger(ledger_df)
-        st.success("Payment added!") 
-with tab8:
-    party_sel = st.selectbox("Select Party", options=parties, key="party_sel_recurring")
-    schedule_type = st.radio("Schedule type", options=["weekly","monthly"])
-    note_rec = st.text_input("Note (optional)")
-
-    if schedule_type == "weekly":
-        day_week = st.selectbox("Day of Week", options=["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"])
-    else:
-        days_input = st.text_input("Enter days of month (comma-separated, e.g., 1,10,20)")
-
-    if st.button("Add Recurring Payment"):
-        new_row = {"party": party_sel, "schedule_type": schedule_type, "day_of_week": None, "days_of_month": [], "note": note_rec}
-        if schedule_type == "weekly":
-            new_row["day_of_week"] = ["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"].index(day_week)
-        else:
-            try:
-                new_row["days_of_month"] = [int(d.strip()) for d in days_input.split(",") if 1 <= int(d.strip()) <= 31]
-                if not new_row["days_of_month"]:
-                    st.error("Enter valid day numbers (1-31).")
-                    st.stop()
-            except:
-                st.error("Invalid day input")
-                st.stop()
-
-        recurring_df = pd.concat([recurring_df, pd.DataFrame([new_row])], ignore_index=True)
-        save_recurring(recurring_df)
-        st.success(f"Recurring payment for {party_sel} added successfully!")
-
-    # ====== Run this every time, not just after adding a payment ======
-    today = datetime.today()
-    today_day = today.day        # 1-31
-    today_weekday = today.weekday()  # 0=Monday
-
-    # Weekly due today
-    weekly_due = recurring_df[
-        (recurring_df['schedule_type'] == "weekly") & 
-        (recurring_df['day_of_week'] == today_weekday)
-    ]
-
-    # Monthly due today
-    monthly_due = recurring_df[
-        (recurring_df['schedule_type'] == "monthly") & 
-        (recurring_df['days_of_month'].apply(lambda x: today_day in x if isinstance(x, list) else False))
-    ]
-
-    due_today = pd.concat([weekly_due, monthly_due], ignore_index=True)
-
-    if not due_today.empty:
-        st.subheader("💰 Payments Due Today (10% of Balance)")
-        for _, row in due_today.iterrows():
-            party_name = row['party']
-            note = row['note']
-            # get current balance from ledger
-            party_entries = ledger_df[ledger_df['party'] == party_name]
-            if not party_entries.empty:
-                current_balance = float(party_entries['balance'].iloc[-1])
-                due_amount = round(current_balance * 0.10, 2)
-                st.write(f"{party_name} → ₹ {due_amount:.2f} ({note})")
-            else:
-                st.write(f"{party_name} → No balance recorded")
-    else:
-        st.info("No payments due today")
-with tab9:
-    st.header("💳 Billing System")
-
-    billing_type = st.radio(
-        "Select Billing Type",
-        ["Billing from Challans (NO GST)", "Direct Billing (WITH GST)"]
-    )
-
-    # ==============================================================
-    # 1️⃣ BILLING FROM CHALLANS (NO GST)
-    # ==============================================================
-    if billing_type == "Billing from Challans (NO GST)":
-
-        st.subheader("📄 Merge Multiple Challans (NO GST)")
-
-        # Step 1: Select Party
-        parties = sorted(challans_df["party"].dropna().unique().tolist())
-        party_sel = st.selectbox("Select Party", parties)
-
-        # Step 2: Select multiple challans of party
-        party_challans = challans_df[challans_df["party"] == party_sel]["challan_no"].unique().tolist()
-
-        challan_selected = st.multiselect("Select Challans to Merge", party_challans)
-
-        if challan_selected:
-            # Filter items from selected challans
-            merged_items = challans_df[challans_df["challan_no"].isin(challan_selected)]
-
-            st.write("### Merged Items")
-            st.dataframe(merged_items, use_container_width=True)
-
-            total_amount = merged_items["amount"].sum()
-
-            st.markdown(f"### **Total (No GST): ₹{total_amount}**")
-            if st.button("💾 Save Bill from Challans"):
-                selected_challans = st.session_state.selected_challans # assume this is your list
-                bill_total = sum(c['total_amount'] for c in selected_challans)
-                selected_party = sorted(challans_df["party"].dropna().unique().tolist())
-            
-                # Save to daybook
-                new_bill_entry = {
-                    "party": selected_party,
-                    "date": str(date.today()),
-                    "total_amount": bill_total,
-                    "gst": 0, # Assuming no GST for challan billing
-                    "discount": 0,
-                    "grand_total": bill_total,
-                    "note": f"Billed from {len(selected_challans)} challans"
-                }
-                daybook_df = load_daybook()
-                daybook_df = pd.concat([daybook_df, pd.DataFrame([new_bill_entry])], ignore_index=True)
-                save_daybook(daybook_df)
-            
-                # --- Update ledger ---
-                ledger_df = load_ledger()
-                if not ledger_df[ledger_df['party'] == selected_party].empty:
-                    last_balance = float(ledger_df[ledger_df['party'] == selected_party]['balance'].iloc[-1])
-                else:
-                    last_balance = 0.0
-            
-                new_balance = last_balance + bill_total
-            
-                ledger_entry = {
-                    "entry_id": len(ledger_df) + 1,
-                    "party": selected_party,
-                    "date": str(date.today()),
-                    "type": "Credit",
-                    "amount": bill_total,
-                    "balance": new_balance,
-                    "note": f"Billed from {len(selected_challans)} challans"
-                }
-                ledger_df = pd.concat([ledger_df, pd.DataFrame([ledger_entry])], ignore_index=True)
-                save_ledger(ledger_df)
-            
-                # Optionally mark challans as billed
-                for c in selected_challans:
-                    c['billed'] = True
-            
-                st.success(f"Challan Bill Saved! Ledger updated. New balance: ₹{new_balance:.2f}")
-                                
-            
-
-                
-                    
-                                       
-                
-                
-                
-               
-    # ==============================================================
-    # 2️⃣ DIRECT BILLING (WITH GST)
-    # ==============================================================
-    else:
-        st.subheader("🧾 Direct Billing (GST + Discount)")
-        if "direct_bill_items" not in st.session_state:
-            st.session_state.direct_bill_items = []
-
-        # Select Party
-        parties = ledger_df["party"].unique().tolist()
-        selected_party = st.selectbox("Select Customer / Party", parties)
-
-        st.write("### Add Items")
-
-        # Initialize session rows
-        if "direct_bill_items" not in st.session_state:
-            st.session_state.direct_bill_items = []
-
-        # Add new item-row
-        if st.button("➕ Add Item Row"):
-            st.session_state.direct_bill_items.append({
-                "item": "",
-                "batch": "",
-                "mrp": None,
-                "qty": 1,
-                "rate": None,
-                "discount_percent": 0.0,
-                "gst": None
-            })
-
-        remove_rows = []
-
-        medicines_df = load_medicines()
-
-        medicines_df = load_medicines()
-
-        for i, r in enumerate(st.session_state.direct_bill_items):
-
-            st.markdown(f"#### Item {i+1}")
-            c = st.columns([2, 2, 1.5, 1, 1.5, 1, 1])
-
-            # ITEM
-            with c[0]:
-                item_list = medicines_df["name"].dropna().unique().tolist()
-                selected_item = st.selectbox(
-                    "Item",
-                    ["-- Select --"] + item_list,
-                    index=item_list.index(r.get("item","")) + 1 if r.get("item","") in item_list else 0,
-                    key=f"item_{i}"
-                )
-                r["item"] = selected_item
-
-            auto_mrp = r.get("mrp", 0.0)
-            auto_rate = r.get("rate", 0.0)
-            auto_gst = r.get("gst", 0.0)
-
-            # AUTO FILL ITEM
-            if r["item"] and r["item"] != "-- Select --":
-                item_rows = medicines_df[medicines_df["name"] == r["item"]]
-                if not item_rows.empty:
-                    auto_mrp = float(item_rows.iloc[0]["mrp"])
-                    auto_rate = float(item_rows.iloc[0]["rate"])
-                    auto_gst = float(item_rows.iloc[0]["gst"])
-
-            # BATCH
-            with c[1]:
-                if r["item"] and r["item"] != "-- Select --":
-                    batch_list = medicines_df[medicines_df["name"] == r["item"]]["batch"].tolist()
-                else:
-                    batch_list = []
-
-                selected_batch = st.selectbox(
-                    "Batch",
-                    ["-- Select --"] + batch_list,
-                    index=batch_list.index(r.get("batch","")) + 1 if r.get("batch","") in batch_list else 0,
-                    key=f"batch_{i}"
-                )
-                r["batch"] = selected_batch
-
-            # AUTO FILL BATCH
-            if r["batch"] and r["batch"] != "-- Select --":
-                batch_row = medicines_df[
-                    (medicines_df["name"] == r["item"]) &
-                    (medicines_df["batch"] == r["batch"])
-                ]
-                if not batch_row.empty:
-                    auto_mrp = float(batch_row.iloc[0]["mrp"])
-                    auto_rate = float(batch_row.iloc[0]["rate"])
-                    auto_gst = float(batch_row.iloc[0]["gst"])
-
-            # --- MRP ---
-            with c[2]:
-                r["mrp"] = st.number_input(
-                    "MRP",
-                    min_value=0.0,
-                    value=float(r["mrp"]) if r["mrp"] is not None else auto_mrp,
-                    key=f"mrp_{i}"
-                )
-
-            # --- QTY ---
-            with c[3]:
-                r["qty"] = st.number_input(
-                    "Qty",
-                    min_value=1,
-                    value=int(r["qty"]),
-                    key=f"qty_{i}"
-                )
-
-            # --- RATE ---
-            with c[4]:
-                r["rate"] = st.number_input(
-                    "Rate",
-                    min_value=0.0,
-                    value=float(r["rate"]) if r["rate"] is not None else auto_rate,
-                    key=f"rate_{i}"
-                )
-
-            # --- DISCOUNT ---
-            with c[5]:
-                r["discount_percent"] = st.number_input(
-                    "Discount %",
-                    min_value=0.0,
-                    value=float(r["discount_percent"]),
-                    key=f"disc_{i}"
-                )
-
-            # --- GST ---
-            with c[6]:
-                r["gst"] = st.number_input(
-                    "GST %",
-                    min_value=0.0,
-                    value=float(r["rate"]) if r["rate"] is not None else auto_rate,
-                    key=f"gst_{i}"
-                )
-
-
-            # DELETE ROW
-            if st.button("🗑", key=f"del_{i}"):
-                remove_rows.append(i)
-
-
-        # Remove deleted rows
-        for i in sorted(remove_rows, reverse=True):
-            del st.session_state.direct_bill_items[i]
-
-        # ---- CALCULATIONS ----
-        calculated_rows = []
-        total_discount = 0
-        total_gst = 0
-        grand_total = 0
-
-        for r in st.session_state.direct_bill_items:
-            amount = r["qty"] * r["rate"]
-            discount_amt = amount * r["discount_percent"] / 100
-            amount_after_discount = amount - discount_amt
-            gst_amt = amount_after_discount * r["gst"] / 100
-            total = amount_after_discount + gst_amt
-
-            calculated_rows.append({
-                **r,
-                "amount": amount,
-                "discount_amt": discount_amt,
-                "gst_amt": gst_amt,
-                "total": total
-        })
-
-            total_discount += discount_amt
-            total_gst += gst_amt
-            grand_total += total
-
-            # Show table
-        st.write("### Bill Preview")
-        df = pd.DataFrame(calculated_rows)
-        st.dataframe(df, use_container_width=True)
-
-        st.markdown(f"### Total Discount: ₹{total_discount}")
-        st.markdown(f"### Total GST: ₹{total_gst}")
-        st.markdown(f"### **Grand Total: ₹{grand_total}**")
-
-            # Save Bill
-            # Save Bill
-        if st.button("💾 Save Bill (GST Added)"):
-            new_entry = {
-                "party": selected_party,
-                "date": str(date.today()),
-                "total_amount": df["amount"].sum(),
-                "gst": total_gst,
-                "discount": total_discount,
-                "grand_total": grand_total
-            }
-
-            # Save to daybook
-            daybook_df = load_daybook()
-            daybook_df = pd.concat([daybook_df, pd.DataFrame([new_entry])], ignore_index=True)
-            save_daybook(daybook_df)
-
-            # --- Update ledger ---
-            ledger_df = load_ledger()
-            if not ledger_df[ledger_df['party'] == selected_party].empty:
-                last_balance = float(ledger_df[ledger_df['party'] == selected_party]['balance'].iloc[-1])
-            else:
-                last_balance = 0.0
-
-            new_balance = last_balance + grand_total
-
-            ledger_entry = {
-                "entry_id": len(ledger_df) + 1,
-                "party": selected_party,
-                "date": str(date.today()),
-                "type": "Credit",
-                "amount": grand_total,
-                "balance": new_balance,
-                "note": "Direct GST Bill"
-            }
-            ledger_df = pd.concat([ledger_df, pd.DataFrame([ledger_entry])], ignore_index=True)
-            save_ledger(ledger_df)
-            medicines_df = load_medicines()
-            for r in st.session_state.direct_bill_items:
-                item_name = r["item"]
-                batch = r["batch"]
-                qty_sold = r["qty"]
-
-                match = medicines_df[
-                (medicines_df["name"] == item_name) &
-                (medicines_df["batch"] == batch)
-            ]
-                if not match.empty:
-                    idx = match.index[0]
-                    medicines_df.at[idx, "qty"] -= qty_sold
-                    if medicines_df.at[idx, "qty"] < 0:
-                        medicines_df.at[idx, "qty"] = 0
-            save_medicines(medicines_df)
-                
-
-            st.success(f"GST Bill Saved! Ledger updated. New balance: ₹{new_balance:.2f}")
-            st.session_state.direct_bill_items = []
-with tab10:
-    st.title("Retailer Purchase Rate (PTR) Calculator")
-    st.caption("Adjust percentages to match your system")
-
-# Input fields
-    mrp = st.number_input("Enter MRP (₹):", min_value=0.0, value=0.0, step=0.1)
-    retailer_margin = 20
-    stokist_margin = 10
-    gst = st.radio("Choose G.S.T", [12, 5])
-    quantity = st.number_input("Enter quantity", min_value = 1, value = 1, step = 1)
-    hPTR = (mrp - (mrp * (retailer_margin /100)))/(1 + (gst/100))
-    PTR = round(hPTR * 1.01,2)
-    PTS = round(hPTR - ( hPTR * stokist_margin / 100),2)
-    earning_per_strip = PTR - PTS 
-    total_earning = round(earning_per_strip * quantity, 2)
-    st.write(f"Price to retalier: Rs {PTR}")
-    st.write(f"Price to Stokist: Rs {PTS}")
-    st.write(f"Your earning:{total_earning}")
-    if st.button("Add to Daily Earnings"):
-        daily_earnings_df = load_daily_earnings()
-        new_row = {
-        "Date": date.today().strftime("%Y-%m-%d"),
-        "MRP": mrp,
-        "PTR": PTR,
-        "PTS": PTS,
-        "Quantity": quantity,
-        "Earning": total_earning
-    }
-        daily_earnings_df = pd.concat([daily_earnings_df, pd.DataFrame([new_row])], ignore_index=True)
-        save_daily_earnings(daily_earnings_df)
-        st.success(f"₹ {total_earning} added to daily earnings for {date.today().strftime('%Y-%m-%d')}")
-        
-with tab11:
-    st.title("Daily Earnings Tracker")
-
-    daily_earnings_df = load_daily_earnings()
-
-    if not daily_earnings_df.empty:
-        # Select which day's earnings to view
-        selected_date = st.date_input("Select Date", value=date.today())
-        df_day = daily_earnings_df[daily_earnings_df["DATE"] == selected_date.strftime("%Y-%m-%d")]
-
-        if not df_day.empty:
-            st.subheader(f"Earnings for {selected_date.strftime('%Y-%m-%d')}")
-            st.dataframe(df_day[["MRP", "PTR", "PTS", "Quantity", "Earning"]])
-            total_day_earnings = df_day["Earning"].sum()
-            st.subheader(f"Total Earnings: ₹ {round(total_day_earnings,2)}")
-        else:
-            st.info("No earnings recorded for this day.")
-        
-        # Optional: delete entries for selected date
-        if st.button("Delete Earnings for this Date"):
-            daily_earnings_df = daily_earnings_df[daily_earnings_df["Date"] != selected_date.strftime("%Y-%m-%d")]
-            save_daily_earnings(daily_earnings_df)
-            st.success("Earnings deleted for selected date.")
-    else:
-        st.info("No earnings recorded yet.")
-with tab12:
-    st.title("Special Discount")
-    amount = st.number_input("Enter Product Amount (₹)", min_value=0.0)
-    discount_percent = st.number_input("Discount (%)", min_value=0.0, max_value=100.0)
-
-    if st.button("Calculate"):
-        # Step 1: After discount
-        after_discount = amount - (amount * discount_percent / 100)
-
-        # Step 2: 4.45% of discounted amount
-        extra_445 = after_discount * 4.45 / 100
-
-        st.success(f"Amount After Discount: ₹ {after_discount:.2f}")
-        st.success(f"4.45% of Discounted Amount: ₹ {extra_445:.2f}")
-
-    
-    
-
-
-        
-    
-    
-
-
-    
-    
-       
 # ---------------- Save final state (ensure persisted) ----------------
 save_challans(challans_df)
 save_medicines(med_df)
