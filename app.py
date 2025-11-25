@@ -1226,7 +1226,7 @@ with tab9:
                 
             with c[1]:
                 if selected_item != "--select--":
-                    batch_list = medicines_df[medicines_df["item"] == selected_item]["batch"].unique().tolist()
+                    batch_list = medicines_df[medicines_df["batch"] == selected_item]["batch"].unique().tolist()
                 else:
                     batch_list = []
                     selected_batch = st.selectbox(
