@@ -1236,6 +1236,12 @@ with tab9:
                 # Load autofill values
                 if selected_item != "-- Select --":
                     med = medicines_df[medicines_df["name"] == selected_item].iloc[0]
+                    st.session_state[f"mrp_{i}"] = float(med["mrp"])
+                    st.session_statep[f"rate_{i}"] = float(med["rate"])
+                    st.session_state[f"gst_{i}"] = float(med["gst"])
+                    st.session_state[f"batch_{i}"] = float(med["batch"])
+
+                    
                     r["mrp"] = float(med["mrp"])
                     r["rate"] = float(med["rate"])
                     r["gst"] = float(med["gst"])
