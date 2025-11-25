@@ -283,7 +283,7 @@ def save_bill(df):
 bill_df = load_bills()
 if bill_df.empty:
     starting_entries = pd.DataFrame([
-        {"bill_id":1, "party":"basit","date":"01/05/2025","items":[{"name":"abc","qty":30,"mrp":10,"rate":21,"total":210}],"bill_amount":1000}
+        {"bill_id":1, "party":"basit","date":"01/05/2025","items":json.dumps[{"name":"abc","qty":30,"mrp":10,"rate":21,"total":210}],"bill_amount":1000}
     ])
     bill_df = pd.concat([bill_df,starting_entries], ignore_index = True)
     save_bill(bill_df)
