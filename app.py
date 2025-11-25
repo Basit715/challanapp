@@ -1334,7 +1334,7 @@ with tab9:
             qty_sold = r["qty"]
 
             match = medicines_df[
-            (medicines_df["item"] == item_name) &
+            (medicines_df["name"] == item_name) &
             (medicines_df["batch"] == batch)
         ]
             if not match.empty:
