@@ -400,8 +400,8 @@ parties = sorted(ledger_df['party'].dropna().unique().tolist())
 if "daily_earnings" not in st.session_state:
     st.session_state.daily_earnings = []  # list to store earnings of each calculation
 
-tab1,tab2,tab3,tab4,tab5,tab6,tab7,tab8,tab9,tab10,tab11,tab12 = st.tabs(["Challans", "Medicines (Inventory)", "Reports / Utilities", "Day Book",
-     "Dashboard", "Advertisement", "Ledger", "Recurring Payment", "Billing","Calculator","Daily Earnings","Special Discount"])
+tab1,tab2,tab3,tab4,tab5,tab6,tab7,tab8,tab9,tab10,tab11,tab12,tab13 = st.tabs(["Challans", "Medicines (Inventory)", "Reports / Utilities", "Day Book",
+     "Dashboard", "Advertisement", "Ledger", "Recurring Payment", "Billing","Calculator","Daily Earnings","Special Discount","Edit Party / view & Update balance"])
 
 # Tab order: Challans | Medicines | Reports | Day Book (user chose B)
 
@@ -423,7 +423,7 @@ with tab2:
         rate = st.number_input("Rate", min_value=0.0, value=0.0, key="med_add_rate")
         mrp = st.number_input("MRP", min_value=0.0, value=0.0, key="med_add_mrp")
         gst = st.number_input("GST %", min_value=0.0, max_value=28.0, value=DEFAULT_GST, key="med_add_gst")
-        if st.button("Add Batch", key="btn_add_batch"):
+        if st.button("Add Medicine", key="btn_add_batch"):
             if not med_name or not batch:
                 st.error("Provide medicine name and batch.")
             else:
@@ -1460,6 +1460,27 @@ with tab12:
 
         st.success(f"Amount After Discount: ₹ {after_discount:.2f}")
         st.success(f"4.45% of Discounted Amount: ₹ {extra_445:.2f}")
+with tab13:
+    st.title("Edit Party / view & Update balance")
+    ledger_df = load_ledger()
+    party_names = ledger_df["party"].unique().tolist()
+    selected_party = st.selectbox("Select Party to edit",["--select--"] + party_names)
+    if selected_party != "--select--":
+        party_row = ledger_df[ledger_df["party"] == selected_party].iloc[0]
+        if "balance" in ledger_df.columns:
+            st.markdown(f"**Current balance:** Rs {party_row['balance']")
+        new_part_name = st.text_input("Party Name", value = party_row['party'])
+        if "balance" in ledger_df.columns:
+            new_balance = st.number_input("Balance", value = float(party_row['balance']), step = 1.0)
+            if st.button("Save Changes"):
+                idx = ledger_df[ledger_df['party'] == selected_party].index[0]
+                ledger_df.at[idx, 'party'] = new_party_name
+                if 'balance' in ledger_df.columns:
+                    ledger_df.at[idx, 'balance'] = new_balance
+                save_ledger(ledger_df)
+                st.success(f"Party '{selected_party}' updated successfully")
+            
+                                                   
 
     
     
