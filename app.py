@@ -1216,77 +1216,107 @@ with tab9:
 
         medicines_df = load_medicines()
 
-        for i, r in enumerate(st.session_state.direct_bill_items):
-            st.markdown(f"#### Item {i+1}")
+        medicines_df = load_medicines()
 
+        for i, r in enumerate(st.session_state.direct_bill_items):
+
+            st.markdown(f"#### Item {i+1}")
             c = st.columns([2, 2, 1.5, 1, 1.5, 1, 1])
 
-            # --- ITEM SELECT ---
+            # ITEM
             with c[0]:
                 item_list = medicines_df["name"].dropna().unique().tolist()
                 selected_item = st.selectbox(
                     "Item",
                     ["-- Select --"] + item_list,
-                    index=item_list.index(r["item"]) + 1 if r["item"] in item_list else 0,
+                    index=item_list.index(r.get("item","")) + 1 if r.get("item","") in item_list else 0,
                     key=f"item_{i}"
                 )
                 r["item"] = selected_item
 
-            # --- AUTO-FILL AFTER ITEM SELECTION ---
+            auto_mrp = r.get("mrp", 0.0)
+            auto_rate = r.get("rate", 0.0)
+            auto_gst = r.get("gst", 0.0)
+
+            # AUTO FILL ITEM
             if r["item"] and r["item"] != "-- Select --":
                 item_rows = medicines_df[medicines_df["name"] == r["item"]]
                 if not item_rows.empty:
-                    # If batch not selected yet, fill generic values
-                    r["mrp"] = float(item_rows.iloc[0]["mrp"])
-                    r["rate"] = float(item_rows.iloc[0]["rate"])
-                    r["gst"] = float(item_rows.iloc[0]["gst"])
+                    auto_mrp = float(item_rows.iloc[0]["mrp"])
+                    auto_rate = float(item_rows.iloc[0]["rate"])
+                    auto_gst = float(item_rows.iloc[0]["gst"])
 
-            # --- BATCH SELECT ---
+            # BATCH
             with c[1]:
                 if r["item"] and r["item"] != "-- Select --":
-                    batch_list = medicines_df[medicines_df["name"] == r["item"]]["batch"].unique().tolist()
+                    batch_list = medicines_df[medicines_df["name"] == r["item"]]["batch"].tolist()
                 else:
                     batch_list = []
 
                 selected_batch = st.selectbox(
                     "Batch",
                     ["-- Select --"] + batch_list,
-                    index=batch_list.index(r["batch"]) + 1 if r["batch"] in batch_list else 0,
+                    index=batch_list.index(r.get("batch","")) + 1 if r.get("batch","") in batch_list else 0,
                     key=f"batch_{i}"
                 )
                 r["batch"] = selected_batch
 
-            # --- AUTO-FILL AFTER BATCH SELECT ---
+            # AUTO FILL BATCH
             if r["batch"] and r["batch"] != "-- Select --":
                 batch_row = medicines_df[
                     (medicines_df["name"] == r["item"]) &
                     (medicines_df["batch"] == r["batch"])
                 ]
-
                 if not batch_row.empty:
-                    r["mrp"] = float(batch_row.iloc[0]["mrp"])
-                    r["rate"] = float(batch_row.iloc[0]["rate"])
-                    r["gst"] = float(batch_row.iloc[0]["gst"])
+                    auto_mrp = float(batch_row.iloc[0]["mrp"])
+                    auto_rate = float(batch_row.iloc[0]["rate"])
+                    auto_gst = float(batch_row.iloc[0]["gst"])
 
             # --- MRP ---
             with c[2]:
-                r["mrp"] = st.number_input("MRP", min_value=0.0, value=float(r["mrp"]), key=f"mrp_{i}")
+                r["mrp"] = st.number_input(
+                    "MRP",
+                    min_value=0.0,
+                    value=float(r["mrp"]) if r["mrp"] else auto_mrp,
+                    key=f"mrp_{i}"
+                )
 
             # --- QTY ---
             with c[3]:
-                r["qty"] = st.number_input("Qty", min_value=1, value=int(r["qty"]), key=f"qty_{i}")
+                r["qty"] = st.number_input(
+                    "Qty",
+                    min_value=1,
+                    value=int(r["qty"]),
+                    key=f"qty_{i}"
+                )
 
             # --- RATE ---
             with c[4]:
-                r["rate"] = st.number_input("Rate", min_value=0.0, value=float(r["rate"]), key=f"rate_{i}")
+                r["rate"] = st.number_input(
+                    "Rate",
+                    min_value=0.0,
+                    value=float(r["rate"]) if r["rate"] else auto_rate,
+                    key=f"rate_{i}"
+                )
 
             # --- DISCOUNT ---
             with c[5]:
-                r["discount_percent"] = st.number_input("Discount %", min_value=0.0, value=float(r["discount_percent"]), key=f"disc_{i}")
+                r["discount_percent"] = st.number_input(
+                    "Discount %",
+                    min_value=0.0,
+                    value=float(r["discount_percent"]),
+                    key=f"disc_{i}"
+                )
 
             # --- GST ---
             with c[6]:
-                r["gst"] = st.number_input("GST %", min_value=0.0, value=float(r["gst"]), key=f"gst_{i}")
+                r["gst"] = st.number_input(
+                    "GST %",
+                    min_value=0.0,
+                    value=float(r["gst"]) if r["gst"] else auto_gst,
+                    key=f"gst_{i}"
+                )
+
 
             # DELETE ROW
             if st.button("🗑", key=f"del_{i}"):
