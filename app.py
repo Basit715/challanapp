@@ -423,8 +423,8 @@ if "daily_earnings" not in st.session_state:
 if 'direct_bill_items' not in st.session_state:
     st.session_state.direct_bill_items = []
 
-tab1,tab2,tab3,tab4,tab5,tab6,tab7,tab8,tab9,tab10,tab11,tab12,tab13 = st.tabs(["Challans", "Medicines (Inventory)", "Reports / Utilities", "Day Book",
-     "Dashboard", "Advertisement", "Ledger", "Recurring Payment", "Billing","Calculator","Daily Earnings","Special Discount","Edit Party / view & Update balance"])
+tab1,tab2,tab3,tab4,tab5,tab6,tab7,tab8,tab9,tab10,tab11,tab12,tab13,tab14 = st.tabs(["Challans", "Medicines (Inventory)", "Reports / Utilities", "Day Book",
+     "Dashboard", "Advertisement", "Ledger", "Recurring Payment", "Billing","Calculator","Daily Earnings","Special Discount","Edit Party / view & Update balance","Sales Book"])
 
 # Tab order: Challans | Medicines | Reports | Day Book (user chose B)
 
@@ -1509,7 +1509,39 @@ with tab13:
                     ledger_df.at[idx, 'balance'] = new_balance
                 save_ledger(ledger_df)
                 st.success(f"Party '{selected_party}' updated successfully")
+bills_df = load_bills()
+with tab14:
+    st.title("Sales Book")
+    
+      if bills_df.empty:
+          st.info("No bills Found in excel")
+      else:
+          st.dataframe(bills_df[["bill_id","party","date"]],use_container_width = True)
+          bill_id = st.number_input("Enter bill id to view details", min_value = int(bills_df['bill_id'].min()),max_value = int(bills_df['bill_id'].max()), step = 1)
+          selected_bill = bills_df[bills_df['bill_id']==bill_id]
+          if not selected_bill.empty:
+              bill = selected_bill.iloc[0]
+              st.write(f"**Bill Id**{bill['bill_id']}")
+              st.write(f"**Party**{bill['party']}")
+              st.write(f"**Date**{bill['date']}")
+              try:
+                  items = json.loads(bill['items'])
+                  items_df = pd.DataFrame(items)
+                  st.table(items_df)
+              except:
+                  st.warning("Cannot parse items for this bill")
+          else:
+              st.warning("Bill not Found")
+       
+                  
             
+                       
+        
+          
+          
+
+
+          
                                                    
 
     
