@@ -394,8 +394,8 @@ parties = sorted(ledger_df['party'].dropna().unique().tolist())
 if "daily_earnings" not in st.session_state:
     st.session_state.daily_earnings = []  # list to store earnings of each calculation
 
-tab1,tab2,tab3,tab4,tab5,tab6,tab7,tab8,tab9,tab10,tab11 = st.tabs(["Challans", "Medicines (Inventory)", "Reports / Utilities", "Day Book",
-     "Dashboard", "Advertisement", "Ledger", "Recurring Payment", "Billing","Calculator","Daily Earnings"])
+tab1,tab2,tab3,tab4,tab5,tab6,tab7,tab8,tab9,tab10,tab11,tab12 = st.tabs(["Challans", "Medicines (Inventory)", "Reports / Utilities", "Day Book",
+     "Dashboard", "Advertisement", "Ledger", "Recurring Payment", "Billing","Calculator","Daily Earnings","Special Discount"])
 
 # Tab order: Challans | Medicines | Reports | Day Book (user chose B)
 
@@ -1364,6 +1364,21 @@ with tab11:
             st.success("Earnings deleted for selected date.")
     else:
         st.info("No earnings recorded yet.")
+with tab12:
+    st.tittle("Special Discount")
+    amount = st.number_input("Enter Product Amount (₹)", min_value=0.0)
+    discount_percent = st.number_input("Discount (%)", min_value=0.0, max_value=100.0)
+
+    if st.button("Calculate"):
+        # Step 1: After discount
+        after_discount = amount - (amount * discount_percent / 100)
+
+        # Step 2: 4.45% of discounted amount
+        extra_445 = after_discount * 4.45 / 100
+
+        st.success(f"Amount After Discount: ₹ {after_discount:.2f}")
+        st.success(f"4.45% of Discounted Amount: ₹ {extra_445:.2f}")
+
     
     
 
