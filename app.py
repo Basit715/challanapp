@@ -1237,7 +1237,7 @@ with tab9:
                 if selected_item != "-- Select --":
                     med = medicines_df[medicines_df["name"] == selected_item].iloc[0]
                     st.session_state[f"mrp_{i}"] = float(med["mrp"])
-                    st.session_statep[f"rate_{i}"] = float(med["rate"])
+                    st.session_state[f"rate_{i}"] = float(med["rate"])
                     st.session_state[f"gst_{i}"] = float(med["gst"])
                     st.session_state[f"batch_{i}"] = float(med["batch"])
 
