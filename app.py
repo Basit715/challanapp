@@ -1205,11 +1205,11 @@ with tab9:
             st.session_state.direct_bill_items.append({
                 "item": "",
                 "batch": "",
-                "mrp": 0.0,
+                "mrp": None,
                 "qty": 1,
-                "rate": 0.0,
+                "rate": None,
                 "discount_percent": 0.0,
-                "gst": 0.0
+                "gst": None
             })
 
         remove_rows = []
@@ -1277,7 +1277,7 @@ with tab9:
                 r["mrp"] = st.number_input(
                     "MRP",
                     min_value=0.0,
-                    value=float(r["mrp"]) if r["mrp"] else auto_mrp,
+                    value=float(r["mrp"]) if r["mrp"] is not None else auto_mrp,
                     key=f"mrp_{i}"
                 )
 
@@ -1295,7 +1295,7 @@ with tab9:
                 r["rate"] = st.number_input(
                     "Rate",
                     min_value=0.0,
-                    value=float(r["rate"]) if r["rate"] else auto_rate,
+                    value=float(r["rate"]) if r["rate"] is not None else auto_rate,
                     key=f"rate_{i}"
                 )
 
@@ -1313,7 +1313,7 @@ with tab9:
                 r["gst"] = st.number_input(
                     "GST %",
                     min_value=0.0,
-                    value=float(r["gst"]) if r["gst"] else auto_gst,
+                    value=float(r["rate"]) if r["rate"] is not None else auto_rate,
                     key=f"gst_{i}"
                 )
 
