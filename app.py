@@ -1417,7 +1417,7 @@ with tab9:
         save_medicines(medicines_df)
             
 
-        st.success(f"GST Bill Saved! Ledger updated. New balance: ₹{balance:.2f}")
+        st.success(f"GST Bill Saved! Ledger updated")
         st.session_state.direct_bill_items = []
 with tab10:
     st.title("Retailer Purchase Rate (PTR) Calculator")
