@@ -370,7 +370,6 @@ def daybook_to_pdf_bytes(db_df, title="Day Book"):
         amount = pd.to_numeric(r.get("amount", 0), errors="coerce")
         if pd.isna(amount):
             amount = 0
-            
         pdf.cell(30,8, f"{amount:.2f}", border=1, align="R")
         pdf.ln()
         if pd.notna(r["amount"]):
@@ -1194,11 +1193,11 @@ with tab9:
 
         st.write("### Add Items")
 
-        # Initialize blank rows
+        # Initialize session rows
         if "direct_bill_items" not in st.session_state:
             st.session_state.direct_bill_items = []
 
-        # Add new item row
+        # Add new item-row
         if st.button("➕ Add Item Row"):
             st.session_state.direct_bill_items.append({
                 "item": "",
@@ -1212,85 +1211,85 @@ with tab9:
 
         remove_rows = []
 
+        medicines_df = load_medicines()
+
         for i, r in enumerate(st.session_state.direct_bill_items):
-
-            medicines_df = load_medicines()
-
-            item_list = medicines_df["name"].unique().tolist()
-
             st.markdown(f"#### Item {i+1}")
+
             c = st.columns([2, 2, 1.5, 1, 1.5, 1, 1])
 
-            # -------------------------
-            #   SELECT ITEM (AUTO-FILL)
-            # -------------------------
+            # ITEM
             with c[0]:
+                item_list = medicines_df["name"].unique().tolist()
                 selected_item = st.selectbox(
                     "Item",
-                    options=["-- Select --"] + item_list,
+                    ["-- Select --"] + item_list,
                     index=item_list.index(r["item"]) + 1 if r["item"] in item_list else 0,
                     key=f"item_{i}"
                 )
                 r["item"] = selected_item
 
-                # Load autofill values
-                if selected_item != "-- Select --":
-                    med = medicines_df[medicines_df["name"] == selected_item].iloc[0]
-                    r["mrp"] = float(med["mrp"])
-                    r["rate"] = float(med["rate"])
-                    r["gst"] = float(med["gst"])
-                    r["batch"] = str(med["batch"])
+            # AUTO-FILL when item selected
+            if r["item"] and r["item"] != "-- Select --":
+                item_row = medicines_df[medicines_df["name"] == r["item"]].iloc[0]
+                r["mrp"] = float(item_row["mrp"])
+                r["rate"] = float(item_row["rate"])
+                r["gst"] = float(item_row["gst"])
 
-            # -------------------------
-            #   BATCH
-            # -------------------------
+            # BATCH
             with c[1]:
-                batch_list = medicines_df[medicines_df["name"] == selected_item]["batch"].unique().tolist() \
-                            if selected_item != "-- Select --" else []
-                r["batch"] = st.selectbox("Batch", ["-- Select --"] + batch_list,
-                                        index=batch_list.index(r["batch"]) + 1 if r["batch"] in batch_list else 0,
-                                        key=f"batch_{i}")
+                if r["item"] and r["item"] != "-- Select --":
+                    batch_list = medicines_df[medicines_df["name"] == r["item"]]["batch"].unique().tolist()
+                else:
+                    batch_list = []
 
-            # -------------------------
-            #   MRP (Auto-filled)
-            # -------------------------
+                selected_batch = st.selectbox(
+                    "Batch",
+                    ["-- Select --"] + batch_list,
+                    index=batch_list.index(r["batch"]) + 1 if r["batch"] in batch_list else 0,
+                    key=f"batch_{i}"
+                )
+                r["batch"] = selected_batch
+
+            # AUTO-FILL when batch selected
+            if r["batch"] and r["batch"] != "-- Select --":
+                batch_row = medicines_df[
+                    (medicines_df["name"] == r["item"]) &
+                    (medicines_df["batch"] == r["batch"])
+                ].iloc[0]
+                r["mrp"] = float(batch_row["mrp"])
+                r["rate"] = float(batch_row["rate"])
+                r["gst"] = float(batch_row["gst"])
+
+            # MRP INPUT
             with c[2]:
-                r["mrp"] = st.number_input("MRP", min_value=0.0, value=r["mrp"], key=f"mrp_{i}")
+                r["mrp"] = st.number_input("MRP", min_value=0.0, value=float(r["mrp"]), key=f"mrp_{i}")
 
-            # -------------------------
-            #   QTY
-            # -------------------------
+            # QTY
             with c[3]:
-                r["qty"] = st.number_input("Qty", min_value=1, value=r["qty"], key=f"qty_{i}")
+                r["qty"] = st.number_input("Qty", min_value=1, value=int(r["qty"]), key=f"qty_{i}")
 
-            # -------------------------
-            #   RATE (Auto-filled)
-            # -------------------------
+            # RATE
             with c[4]:
-                r["rate"] = st.number_input("Rate", min_value=0.0, value=r["rate"], key=f"rate_{i}")
+                r["rate"] = st.number_input("Rate", min_value=0.0, value=float(r["rate"]), key=f"rate_{i}")
 
-            # -------------------------
-            #   DISCOUNT
-            # -------------------------
+            # DISCOUNT
             with c[5]:
-                r["discount_percent"] = st.number_input("Discount %", min_value=0.0, value=r["discount_percent"], key=f"disc_{i}")
+                r["discount_percent"] = st.number_input("Discount %", min_value=0.0, value=float(r["discount_percent"]), key=f"disc_{i}")
 
-            # -------------------------
-            #   GST (Auto-filled)
-            # -------------------------
+            # GST
             with c[6]:
-                r["gst"] = st.number_input("GST %", min_value=0.0, value=r["gst"], key=f"gst_{i}")
+                r["gst"] = st.number_input("GST %", min_value=0.0, value=float(r["gst"]), key=f"gst_{i}")
 
             # DELETE ROW
             if st.button("🗑", key=f"del_{i}"):
                 remove_rows.append(i)
 
-
-        # Remove rows
+        # Remove deleted rows
         for i in sorted(remove_rows, reverse=True):
             del st.session_state.direct_bill_items[i]
 
-        # Calculate totals
+        # ---- CALCULATIONS ----
         calculated_rows = []
         total_discount = 0
         total_gst = 0
@@ -1303,7 +1302,20 @@ with tab9:
             gst_amt = amount_after_discount * r["gst"] / 100
             total = amount_after_discount + gst_amt
 
-            calculated_rows.append({
+    calculated_rows.append({
+        **r,
+        "amount": amount,
+        "discount_amt": discount_amt,
+        "gst_amt": gst_amt,
+        "total": total
+    })
+
+    total_discount += discount_amt
+    total_gst += gst_amt
+    grand_total += total
+
+
+    calculated_rows.append({
                 **r,
                 "amount": amount,
                 "discount_amt": discount_amt,
@@ -1311,18 +1323,18 @@ with tab9:
                 "total": total
             })
 
-            total_discount += discount_amt
-            total_gst += gst_amt
-            grand_total += total
+    total_discount += discount_amt
+    total_gst += gst_amt
+    grand_total += total
 
         # Show table
-        st.write("### Bill Preview")
-        df = pd.DataFrame(calculated_rows)
-        st.dataframe(df, use_container_width=True)
+    st.write("### Bill Preview")
+    df = pd.DataFrame(calculated_rows)
+    st.dataframe(df, use_container_width=True)
 
-        st.markdown(f"### Total Discount: ₹{total_discount}")
-        st.markdown(f"### Total GST: ₹{total_gst}")
-        st.markdown(f"### **Grand Total: ₹{grand_total}**")
+    st.markdown(f"### Total Discount: ₹{total_discount}")
+    st.markdown(f"### Total GST: ₹{total_gst}")
+    st.markdown(f"### **Grand Total: ₹{grand_total}**")
 
         # Save Bill
         # Save Bill
@@ -1368,7 +1380,7 @@ with tab9:
             qty_sold = r["qty"]
 
             match = medicines_df[
-            (medicines_df["item"] == item_name) &
+            (medicines_df["name"] == item_name) &
             (medicines_df["batch"] == batch)
         ]
             if not match.empty:
