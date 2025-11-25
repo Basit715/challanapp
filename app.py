@@ -1327,6 +1327,23 @@ with tab9:
         }
         ledger_df = pd.concat([ledger_df, pd.DataFrame([ledger_entry])], ignore_index=True)
         save_ledger(ledger_df)
+        medicines_df = load_medicines()
+        for r in st.session_state.direct_bill_items:
+            item_name = r["item"]
+            batch = r["batch"]
+            qty_sold = r["qty"]
+
+            match = medicines_df[
+            (medicines_df["item"] == item_name) &
+            (medicines_df["batch"] == batch)
+        ]
+            if not match.empty:
+                idx = match.index[0]
+                medicines_df.at[idx, "qty"] -= qty_sold
+                if medicines_df.at[idx, "qty"] < 0:
+                    medicines_df.at[idx, "qty"] = 0
+        save_medicines(medicines_df)
+            
 
         st.success(f"GST Bill Saved! Ledger updated. New balance: ₹{new_balance:.2f}")
         st.session_state.direct_bill_items = []
