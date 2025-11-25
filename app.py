@@ -1355,19 +1355,21 @@ with tab9:
         # Save Bill
         # Save Bill
     if st.button("💾 Save Bill (GST Added)"):
-        new_entry = {
-            "party": selected_party,
-            "date": str(date.today()),
-            "total_amount": df["amount"].sum(),
-            "gst": total_gst,
-            "discount": total_discount,
-            "grand_total": grand_total
+        selected_party = selected_party.strip()
+        #save bill to bill sheet
+        bill_df = load_bills()
+        new_bill = {
+            "bill_id": len(bill_df)+1,
+            "party":selected_party,
+            "date":str(date.today()),
+            "items":json.dumps(st.session_state.direct_bill_items),
+            "bill_amount":grand_total
         }
+        bill_df = pd.concat([bill_df,pd.DataFrame([new_bill])],ignore_index=True)
+        save_bill(bill_df)
+        
+        
 
-        # Save to daybook
-        daybook_df = load_daybook()
-        daybook_df = pd.concat([daybook_df, pd.DataFrame([new_entry])], ignore_index=True)
-        save_daybook(daybook_df)
 
         # --- Update ledger ---
         ledger_df = load_ledger()
