@@ -82,6 +82,8 @@ RECURRING_FILE = os.path.join(DATA_DIR,"recurring.xlsx")
 RECURRING_ID = "1Gti-tD9DlYpDqZUicvzmTBFKTYU-_NabM8i8etY0b4k"
 DAILY_EARNING_FILE = os.path.join(DATA_DIR, "daily_earning.xlsx")
 DAILY_EARNING_ID = "1kx3GUOsWtkKiGbH_S6_983gEm8qkOcFtRWxh9teufx8"
+BILLS_FILE = os.path.join(DATA_DIR, "bills.xlsx")
+BILLS_ID = "1JneZFd8IuQGbUTFznvseUecVUweCKk5XgijTi5gOyOA"
 MAX_ITEMS = 50
 DEFAULT_GST = 5.0
 APP_TITLE = "💊 NEW PharmaWAYS — WE SELL QUALITY MEDICINES"
@@ -267,6 +269,18 @@ if daily_earning_df.empty:
     ])
     daily_earning_df = pd.concat([daily_earning_df,starting_entries],ignore_index = True)
     save_daily_earnings(daily_earning_df)
+def load_bills():
+    try:
+        df = read_excel_from_drive(BILLS_ID)
+        return df.fillna("")
+    except Exception as e:
+        return pd.DataFrame(columms = ["bill_id", "party", "date", "items", "bill_amount"])
+def save_bill(df):
+    try:
+        write_excel_to_drive(df, BILLS_ID)
+    except Exception as e:
+        st.error(f"Error saving bill {e}")
+bill_df = load_bills()
 # ---------------- Calculations & PDF ----------------
 def compute_row_amount(qty, rate, discount_pct, gst_pct):
     try: q = float(qty)
