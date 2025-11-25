@@ -1302,30 +1302,17 @@ with tab9:
         gst_amt = amount_after_discount * r["gst"] / 100
         total = amount_after_discount + gst_amt
 
-    calculated_rows.append({
-        **r,
-        "amount": amount,
-        "discount_amt": discount_amt,
-        "gst_amt": gst_amt,
-        "total": total
+        calculated_rows.append({
+            **r,
+            "amount": amount,
+            "discount_amt": discount_amt,
+            "gst_amt": gst_amt,
+            "total": total
     })
 
-    total_discount += discount_amt
-    total_gst += gst_amt
-    grand_total += total
-
-
-    calculated_rows.append({
-                **r,
-                "amount": amount,
-                "discount_amt": discount_amt,
-                "gst_amt": gst_amt,
-                "total": total
-            })
-
-    total_discount += discount_amt
-    total_gst += gst_amt
-    grand_total += total
+        total_discount += discount_amt
+        total_gst += gst_amt
+        grand_total += total
 
         # Show table
     st.write("### Bill Preview")
