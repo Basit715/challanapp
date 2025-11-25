@@ -12,24 +12,20 @@ def gdrive_service():
 
     return build("drive","v3",credentials=creds)
 def read_excel_from_drive(file_id):
-    try:
-        service = gdrive_service()
-        request = service.files().export_media(
-            file_ID = file_id,
-            mimeType = "application/vnd.openxmlformats.officedocument.spreadsheetml.sheet"
-        )
-        buffer = io.BytesIO()
-        downloader = MediaIoBaseDownload(buffer,request)
+    service = gdrive_service()
 
-        done = False
-        while done is False:
-            status,done = downloader.next_chunk()
-        buffer.seek(0)
-        df = pd.read_excel(buffer,engine="openpyxl")
-        return df
-    except Exception as e:
-        st.error(f"Error reading Excel: {e}")
-        return 
+    # Export Google Sheet to Excel
+    data = service.files().export(
+        fileId=file_id,
+        mimeType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    ).execute()
+
+    buffer = io.BytesIO()
+    buffer.write(data)
+    buffer.seek(0)
+
+    df = pd.read_excel(buffer, engine="openpyxl")
+    return df
 def write_excel_to_drive(df, file_id):
     service = gdrive_service()
 
@@ -57,7 +53,6 @@ from fpdf import FPDF
 from io import BytesIO
 from urllib.parse import quote_plus
 
-
 # -------------------- LOGIN SYSTEM --------------------
 
 # Create session state key
@@ -67,8 +62,8 @@ from urllib.parse import quote_plus
 
 
 # Load image from repo
-#img = Image.open("Gemini_Generated_Image_j18vq7j18vq7j18v.png")  # just the filename if in same folder
-#st.image(img,caption = "Basit Pushoo - Developer", width=150)          # adjust size as needed
+img = Image.open("Gemini_Generated_Image_j18vq7j18vq7j18v.png")  # just the filename if in same folder
+st.image(img,caption = "Basit Pushoo - Developer", width=150)          # adjust size as needed
 
 
 
@@ -187,8 +182,6 @@ def save_medicines(df):
         write_excel_to_drive(df,st.secrets['files']['MEDICINE_ID'])
     except Exception as e:
         st.error(f"Error saving medicines {e}")
-med_df = load_medicines()
-print(med_df.head)
 
 def load_daybook():
     try:
@@ -263,7 +256,7 @@ def load_daily_earnings():
 def save_daily_earnings(df):
     try:
         write_excel_to_drive(df, DAILY_EARNING_ID)
-    except Exception as e:
+    except EXCEPTION as e:
         st.error(f"Error Saving daily_earning {e}")
 daily_earning_df = load_daily_earnings()
 if daily_earning_df.empty:
@@ -377,6 +370,7 @@ def daybook_to_pdf_bytes(db_df, title="Day Book"):
         amount = pd.to_numeric(r.get("amount", 0), errors="coerce")
         if pd.isna(amount):
             amount = 0
+            
         pdf.cell(30,8, f"{amount:.2f}", border=1, align="R")
         pdf.ln()
         if pd.notna(r["amount"]):
@@ -1193,8 +1187,6 @@ with tab9:
     # ==============================================================
     else:
         st.subheader("🧾 Direct Billing (GST + Discount)")
-        if "direct_bill_items" not in st.session_state:
-            st.session_state.direct_bill_items = []
 
         # Select Party
         parties = ledger_df["party"].unique().tolist()
@@ -1202,138 +1194,103 @@ with tab9:
 
         st.write("### Add Items")
 
-        # Initialize session rows
+        # Initialize blank rows
         if "direct_bill_items" not in st.session_state:
             st.session_state.direct_bill_items = []
 
-        # Add new item-row
+        # Add new item row
         if st.button("➕ Add Item Row"):
             st.session_state.direct_bill_items.append({
                 "item": "",
                 "batch": "",
-                "mrp": None,
+                "mrp": 0.0,
                 "qty": 1,
-                "rate": None,
+                "rate": 0.0,
                 "discount_percent": 0.0,
-                "gst": None
+                "gst": 0.0
             })
 
         remove_rows = []
 
-        medicines_df = load_medicines()
-
-        medicines_df = load_medicines()
-
         for i, r in enumerate(st.session_state.direct_bill_items):
+
+            medicines_df = load_medicines()
+
+            item_list = medicines_df["name"].unique().tolist()
 
             st.markdown(f"#### Item {i+1}")
             c = st.columns([2, 2, 1.5, 1, 1.5, 1, 1])
 
-            # ITEM
+            # -------------------------
+            #   SELECT ITEM (AUTO-FILL)
+            # -------------------------
             with c[0]:
-                item_list = medicines_df["name"].dropna().unique().tolist()
                 selected_item = st.selectbox(
                     "Item",
-                    ["-- Select --"] + item_list,
-                    index=item_list.index(r.get("item","")) + 1 if r.get("item","") in item_list else 0,
+                    options=["-- Select --"] + item_list,
+                    index=item_list.index(r["item"]) + 1 if r["item"] in item_list else 0,
                     key=f"item_{i}"
                 )
                 r["item"] = selected_item
 
-            auto_mrp = r.get("mrp", 0.0)
-            auto_rate = r.get("rate", 0.0)
-            auto_gst = r.get("gst", 0.0)
+                # Load autofill values
+                if selected_item != "-- Select --":
+                    med = medicines_df[medicines_df["name"] == selected_item].iloc[0]
+                    r["mrp"] = float(med["mrp"])
+                    r["rate"] = float(med["rate"])
+                    r["gst"] = float(med["gst"])
+                    r["batch"] = str(med["batch"])
 
-            # AUTO FILL ITEM
-            if r["item"] and r["item"] != "-- Select --":
-                item_rows = medicines_df[medicines_df["name"] == r["item"]]
-                if not item_rows.empty:
-                    auto_mrp = float(item_rows.iloc[0]["mrp"])
-                    auto_rate = float(item_rows.iloc[0]["rate"])
-                    auto_gst = float(item_rows.iloc[0]["gst"])
-
-            # BATCH
+            # -------------------------
+            #   BATCH
+            # -------------------------
             with c[1]:
-                if r["item"] and r["item"] != "-- Select --":
-                    batch_list = medicines_df[medicines_df["name"] == r["item"]]["batch"].tolist()
-                else:
-                    batch_list = []
+                batch_list = medicines_df[medicines_df["name"] == selected_item]["batch"].unique().tolist() \
+                            if selected_item != "-- Select --" else []
+                r["batch"] = st.selectbox("Batch", ["-- Select --"] + batch_list,
+                                        index=batch_list.index(r["batch"]) + 1 if r["batch"] in batch_list else 0,
+                                        key=f"batch_{i}")
 
-                selected_batch = st.selectbox(
-                    "Batch",
-                    ["-- Select --"] + batch_list,
-                    index=batch_list.index(r.get("batch","")) + 1 if r.get("batch","") in batch_list else 0,
-                    key=f"batch_{i}"
-                )
-                r["batch"] = selected_batch
-
-            # AUTO FILL BATCH
-            if r["batch"] and r["batch"] != "-- Select --":
-                batch_row = medicines_df[
-                    (medicines_df["name"] == r["item"]) &
-                    (medicines_df["batch"] == r["batch"])
-                ]
-                if not batch_row.empty:
-                    auto_mrp = float(batch_row.iloc[0]["mrp"])
-                    auto_rate = float(batch_row.iloc[0]["rate"])
-                    auto_gst = float(batch_row.iloc[0]["gst"])
-
-            # --- MRP ---
+            # -------------------------
+            #   MRP (Auto-filled)
+            # -------------------------
             with c[2]:
-                r["mrp"] = st.number_input(
-                    "MRP",
-                    min_value=0.0,
-                    value=float(r["mrp"]) if r["mrp"] is not None else auto_mrp,
-                    key=f"mrp_{i}"
-                )
+                r["mrp"] = st.number_input("MRP", min_value=0.0, value=r["mrp"], key=f"mrp_{i}")
 
-            # --- QTY ---
+            # -------------------------
+            #   QTY
+            # -------------------------
             with c[3]:
-                r["qty"] = st.number_input(
-                    "Qty",
-                    min_value=1,
-                    value=int(r["qty"]),
-                    key=f"qty_{i}"
-                )
+                r["qty"] = st.number_input("Qty", min_value=1, value=r["qty"], key=f"qty_{i}")
 
-            # --- RATE ---
+            # -------------------------
+            #   RATE (Auto-filled)
+            # -------------------------
             with c[4]:
-                r["rate"] = st.number_input(
-                    "Rate",
-                    min_value=0.0,
-                    value=float(r["rate"]) if r["rate"] is not None else auto_rate,
-                    key=f"rate_{i}"
-                )
+                r["rate"] = st.number_input("Rate", min_value=0.0, value=r["rate"], key=f"rate_{i}")
 
-            # --- DISCOUNT ---
+            # -------------------------
+            #   DISCOUNT
+            # -------------------------
             with c[5]:
-                r["discount_percent"] = st.number_input(
-                    "Discount %",
-                    min_value=0.0,
-                    value=float(r["discount_percent"]),
-                    key=f"disc_{i}"
-                )
+                r["discount_percent"] = st.number_input("Discount %", min_value=0.0, value=r["discount_percent"], key=f"disc_{i}")
 
-            # --- GST ---
+            # -------------------------
+            #   GST (Auto-filled)
+            # -------------------------
             with c[6]:
-                r["gst"] = st.number_input(
-                    "GST %",
-                    min_value=0.0,
-                    value=float(r["rate"]) if r["rate"] is not None else auto_rate,
-                    key=f"gst_{i}"
-                )
-
+                r["gst"] = st.number_input("GST %", min_value=0.0, value=r["gst"], key=f"gst_{i}")
 
             # DELETE ROW
             if st.button("🗑", key=f"del_{i}"):
                 remove_rows.append(i)
 
 
-        # Remove deleted rows
+        # Remove rows
         for i in sorted(remove_rows, reverse=True):
             del st.session_state.direct_bill_items[i]
 
-        # ---- CALCULATIONS ----
+        # Calculate totals
         calculated_rows = []
         total_discount = 0
         total_gst = 0
@@ -1352,13 +1309,13 @@ with tab9:
                 "discount_amt": discount_amt,
                 "gst_amt": gst_amt,
                 "total": total
-        })
+            })
 
             total_discount += discount_amt
             total_gst += gst_amt
             grand_total += total
 
-            # Show table
+        # Show table
         st.write("### Bill Preview")
         df = pd.DataFrame(calculated_rows)
         st.dataframe(df, use_container_width=True)
@@ -1367,63 +1324,63 @@ with tab9:
         st.markdown(f"### Total GST: ₹{total_gst}")
         st.markdown(f"### **Grand Total: ₹{grand_total}**")
 
-            # Save Bill
-            # Save Bill
-        if st.button("💾 Save Bill (GST Added)"):
-            new_entry = {
-                "party": selected_party,
-                "date": str(date.today()),
-                "total_amount": df["amount"].sum(),
-                "gst": total_gst,
-                "discount": total_discount,
-                "grand_total": grand_total
-            }
+        # Save Bill
+        # Save Bill
+    if st.button("💾 Save Bill (GST Added)"):
+        new_entry = {
+            "party": selected_party,
+            "date": str(date.today()),
+            "total_amount": df["amount"].sum(),
+            "gst": total_gst,
+            "discount": total_discount,
+            "grand_total": grand_total
+        }
 
-            # Save to daybook
-            daybook_df = load_daybook()
-            daybook_df = pd.concat([daybook_df, pd.DataFrame([new_entry])], ignore_index=True)
-            save_daybook(daybook_df)
+        # Save to daybook
+        daybook_df = load_daybook()
+        daybook_df = pd.concat([daybook_df, pd.DataFrame([new_entry])], ignore_index=True)
+        save_daybook(daybook_df)
 
-            # --- Update ledger ---
-            ledger_df = load_ledger()
-            if not ledger_df[ledger_df['party'] == selected_party].empty:
-                last_balance = float(ledger_df[ledger_df['party'] == selected_party]['balance'].iloc[-1])
-            else:
-                last_balance = 0.0
+        # --- Update ledger ---
+        ledger_df = load_ledger()
+        if not ledger_df[ledger_df['party'] == selected_party].empty:
+            last_balance = float(ledger_df[ledger_df['party'] == selected_party]['balance'].iloc[-1])
+        else:
+            last_balance = 0.0
 
-            new_balance = last_balance + grand_total
+        new_balance = last_balance + grand_total
 
-            ledger_entry = {
-                "entry_id": len(ledger_df) + 1,
-                "party": selected_party,
-                "date": str(date.today()),
-                "type": "Credit",
-                "amount": grand_total,
-                "balance": new_balance,
-                "note": "Direct GST Bill"
-            }
-            ledger_df = pd.concat([ledger_df, pd.DataFrame([ledger_entry])], ignore_index=True)
-            save_ledger(ledger_df)
-            medicines_df = load_medicines()
-            for r in st.session_state.direct_bill_items:
-                item_name = r["item"]
-                batch = r["batch"]
-                qty_sold = r["qty"]
+        ledger_entry = {
+            "entry_id": len(ledger_df) + 1,
+            "party": selected_party,
+            "date": str(date.today()),
+            "type": "Credit",
+            "amount": grand_total,
+            "balance": new_balance,
+            "note": "Direct GST Bill"
+        }
+        ledger_df = pd.concat([ledger_df, pd.DataFrame([ledger_entry])], ignore_index=True)
+        save_ledger(ledger_df)
+        medicines_df = load_medicines()
+        for r in st.session_state.direct_bill_items:
+            item_name = r["item"]
+            batch = r["batch"]
+            qty_sold = r["qty"]
 
-                match = medicines_df[
-                (medicines_df["name"] == item_name) &
-                (medicines_df["batch"] == batch)
-            ]
-                if not match.empty:
-                    idx = match.index[0]
-                    medicines_df.at[idx, "qty"] -= qty_sold
-                    if medicines_df.at[idx, "qty"] < 0:
-                        medicines_df.at[idx, "qty"] = 0
-            save_medicines(medicines_df)
-                
+            match = medicines_df[
+            (medicines_df["item"] == item_name) &
+            (medicines_df["batch"] == batch)
+        ]
+            if not match.empty:
+                idx = match.index[0]
+                medicines_df.at[idx, "qty"] -= qty_sold
+                if medicines_df.at[idx, "qty"] < 0:
+                    medicines_df.at[idx, "qty"] = 0
+        save_medicines(medicines_df)
+            
 
-            st.success(f"GST Bill Saved! Ledger updated. New balance: ₹{new_balance:.2f}")
-            st.session_state.direct_bill_items = []
+        st.success(f"GST Bill Saved! Ledger updated. New balance: ₹{new_balance:.2f}")
+        st.session_state.direct_bill_items = []
 with tab10:
     st.title("Retailer Purchase Rate (PTR) Calculator")
     st.caption("Adjust percentages to match your system")
