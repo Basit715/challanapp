@@ -1513,9 +1513,9 @@ bills_df = load_bills()
 with tab14:
     st.title("Sales Book")
     
-      if bills_df.empty:
+    if bills_df.empty:
           st.info("No bills Found in excel")
-      else:
+    else:
           st.dataframe(bills_df[["bill_id","party","date"]],use_container_width = True)
           bill_id = st.number_input("Enter bill id to view details", min_value = int(bills_df['bill_id'].min()),max_value = int(bills_df['bill_id'].max()), step = 1)
           selected_bill = bills_df[bills_df['bill_id']==bill_id]
