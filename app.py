@@ -937,9 +937,9 @@ with tab5:
         daily_debit = db[db["type"]=="DEBIT"].groupby("date")["amount"].sum().reset_index()
         col1, col2 = st.columns([1,1])
         with col1:
-            st.line_chart(daily_credit.rename(columns={"date":"index"}).set_index("date"))
+            st.line_chart(daily_credit.set_index("date"))
         with col2:
-            st.line_chart(daily_debit.rename(columns={"date":"index"}).set_index("date"))
+            st.line_chart(daily_debit.set_index("date"))
         
         total_credit = daily_credit["amount"].sum()
         total_debit = daily_debit["amount"].sum()
