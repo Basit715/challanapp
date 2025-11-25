@@ -1292,96 +1292,96 @@ with tab9:
             del st.session_state.direct_bill_items[i]
 
         # ---- CALCULATIONS ----
-    calculated_rows = []
-    total_discount = 0
-    total_gst = 0
-    grand_total = 0
+        calculated_rows = []
+        total_discount = 0
+        total_gst = 0
+        grand_total = 0
 
-    for r in st.session_state.direct_bill_items:
-        amount = r["qty"] * r["rate"]
-        discount_amt = amount * r["discount_percent"] / 100
-        amount_after_discount = amount - discount_amt
-        gst_amt = amount_after_discount * r["gst"] / 100
-        total = amount_after_discount + gst_amt
-
-        calculated_rows.append({
-            **r,
-            "amount": amount,
-            "discount_amt": discount_amt,
-            "gst_amt": gst_amt,
-            "total": total
-    })
-
-        total_discount += discount_amt
-        total_gst += gst_amt
-        grand_total += total
-
-        # Show table
-    st.write("### Bill Preview")
-    df = pd.DataFrame(calculated_rows)
-    st.dataframe(df, use_container_width=True)
-
-    st.markdown(f"### Total Discount: ₹{total_discount}")
-    st.markdown(f"### Total GST: ₹{total_gst}")
-    st.markdown(f"### **Grand Total: ₹{grand_total}**")
-
-        # Save Bill
-        # Save Bill
-    if st.button("💾 Save Bill (GST Added)"):
-        new_entry = {
-            "party": selected_party,
-            "date": str(date.today()),
-            "total_amount": df["amount"].sum(),
-            "gst": total_gst,
-            "discount": total_discount,
-            "grand_total": grand_total
-        }
-
-        # Save to daybook
-        daybook_df = load_daybook()
-        daybook_df = pd.concat([daybook_df, pd.DataFrame([new_entry])], ignore_index=True)
-        save_daybook(daybook_df)
-
-        # --- Update ledger ---
-        ledger_df = load_ledger()
-        if not ledger_df[ledger_df['party'] == selected_party].empty:
-            last_balance = float(ledger_df[ledger_df['party'] == selected_party]['balance'].iloc[-1])
-        else:
-            last_balance = 0.0
-
-        new_balance = last_balance + grand_total
-
-        ledger_entry = {
-            "entry_id": len(ledger_df) + 1,
-            "party": selected_party,
-            "date": str(date.today()),
-            "type": "Credit",
-            "amount": grand_total,
-            "balance": new_balance,
-            "note": "Direct GST Bill"
-        }
-        ledger_df = pd.concat([ledger_df, pd.DataFrame([ledger_entry])], ignore_index=True)
-        save_ledger(ledger_df)
-        medicines_df = load_medicines()
         for r in st.session_state.direct_bill_items:
-            item_name = r["item"]
-            batch = r["batch"]
-            qty_sold = r["qty"]
+            amount = r["qty"] * r["rate"]
+            discount_amt = amount * r["discount_percent"] / 100
+            amount_after_discount = amount - discount_amt
+            gst_amt = amount_after_discount * r["gst"] / 100
+            total = amount_after_discount + gst_amt
 
-            match = medicines_df[
-            (medicines_df["name"] == item_name) &
-            (medicines_df["batch"] == batch)
-        ]
-            if not match.empty:
-                idx = match.index[0]
-                medicines_df.at[idx, "qty"] -= qty_sold
-                if medicines_df.at[idx, "qty"] < 0:
-                    medicines_df.at[idx, "qty"] = 0
-        save_medicines(medicines_df)
-            
+            calculated_rows.append({
+                **r,
+                "amount": amount,
+                "discount_amt": discount_amt,
+                "gst_amt": gst_amt,
+                "total": total
+        })
 
-        st.success(f"GST Bill Saved! Ledger updated. New balance: ₹{new_balance:.2f}")
-        st.session_state.direct_bill_items = []
+            total_discount += discount_amt
+            total_gst += gst_amt
+            grand_total += total
+
+            # Show table
+        st.write("### Bill Preview")
+        df = pd.DataFrame(calculated_rows)
+        st.dataframe(df, use_container_width=True)
+
+        st.markdown(f"### Total Discount: ₹{total_discount}")
+        st.markdown(f"### Total GST: ₹{total_gst}")
+        st.markdown(f"### **Grand Total: ₹{grand_total}**")
+
+            # Save Bill
+            # Save Bill
+        if st.button("💾 Save Bill (GST Added)"):
+            new_entry = {
+                "party": selected_party,
+                "date": str(date.today()),
+                "total_amount": df["amount"].sum(),
+                "gst": total_gst,
+                "discount": total_discount,
+                "grand_total": grand_total
+            }
+
+            # Save to daybook
+            daybook_df = load_daybook()
+            daybook_df = pd.concat([daybook_df, pd.DataFrame([new_entry])], ignore_index=True)
+            save_daybook(daybook_df)
+
+            # --- Update ledger ---
+            ledger_df = load_ledger()
+            if not ledger_df[ledger_df['party'] == selected_party].empty:
+                last_balance = float(ledger_df[ledger_df['party'] == selected_party]['balance'].iloc[-1])
+            else:
+                last_balance = 0.0
+
+            new_balance = last_balance + grand_total
+
+            ledger_entry = {
+                "entry_id": len(ledger_df) + 1,
+                "party": selected_party,
+                "date": str(date.today()),
+                "type": "Credit",
+                "amount": grand_total,
+                "balance": new_balance,
+                "note": "Direct GST Bill"
+            }
+            ledger_df = pd.concat([ledger_df, pd.DataFrame([ledger_entry])], ignore_index=True)
+            save_ledger(ledger_df)
+            medicines_df = load_medicines()
+            for r in st.session_state.direct_bill_items:
+                item_name = r["item"]
+                batch = r["batch"]
+                qty_sold = r["qty"]
+
+                match = medicines_df[
+                (medicines_df["name"] == item_name) &
+                (medicines_df["batch"] == batch)
+            ]
+                if not match.empty:
+                    idx = match.index[0]
+                    medicines_df.at[idx, "qty"] -= qty_sold
+                    if medicines_df.at[idx, "qty"] < 0:
+                        medicines_df.at[idx, "qty"] = 0
+            save_medicines(medicines_df)
+                
+
+            st.success(f"GST Bill Saved! Ledger updated. New balance: ₹{new_balance:.2f}")
+            st.session_state.direct_bill_items = []
 with tab10:
     st.title("Retailer Purchase Rate (PTR) Calculator")
     st.caption("Adjust percentages to match your system")
