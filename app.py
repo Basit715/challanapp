@@ -1209,7 +1209,7 @@ with tab9:
         remove_rows = []
 
         for i, row in enumerate(st.session_state.direct_bill_items):
-            medicine_df = load_medicines()
+            medicines_df = load_medicines()
             st.markdown(f"#### Item {i+1}")
             c = st.columns([2, 2, 1.5, 1, 1.5, 1, 1])
 
