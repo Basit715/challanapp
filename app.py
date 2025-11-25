@@ -53,6 +53,7 @@ from fpdf import FPDF
 from io import BytesIO
 from urllib.parse import quote_plus
 
+
 # -------------------- LOGIN SYSTEM --------------------
 
 # Create session state key
@@ -62,8 +63,8 @@ from urllib.parse import quote_plus
 
 
 # Load image from repo
-img = Image.open("Gemini_Generated_Image_j18vq7j18vq7j18v.png")  # just the filename if in same folder
-st.image(img,caption = "Basit Pushoo - Developer", width=150)          # adjust size as needed
+#img = Image.open("Gemini_Generated_Image_j18vq7j18vq7j18v.png")  # just the filename if in same folder
+#st.image(img,caption = "Basit Pushoo - Developer", width=150)          # adjust size as needed
 
 
 
@@ -1220,9 +1221,9 @@ with tab9:
 
             c = st.columns([2, 2, 1.5, 1, 1.5, 1, 1])
 
-            # ITEM
+            # --- ITEM SELECT ---
             with c[0]:
-                item_list = medicines_df["name"].unique().tolist()
+                item_list = medicines_df["name"].dropna().unique().tolist()
                 selected_item = st.selectbox(
                     "Item",
                     ["-- Select --"] + item_list,
@@ -1231,14 +1232,16 @@ with tab9:
                 )
                 r["item"] = selected_item
 
-            # AUTO-FILL when item selected
+            # --- AUTO-FILL AFTER ITEM SELECTION ---
             if r["item"] and r["item"] != "-- Select --":
-                item_row = medicines_df[medicines_df["name"] == r["item"]].iloc[0]
-                r["mrp"] = float(item_row["mrp"])
-                r["rate"] = float(item_row["rate"])
-                r["gst"] = float(item_row["gst"])
+                item_rows = medicines_df[medicines_df["name"] == r["item"]]
+                if not item_rows.empty:
+                    # If batch not selected yet, fill generic values
+                    r["mrp"] = float(item_rows.iloc[0]["mrp"])
+                    r["rate"] = float(item_rows.iloc[0]["rate"])
+                    r["gst"] = float(item_rows.iloc[0]["gst"])
 
-            # BATCH
+            # --- BATCH SELECT ---
             with c[1]:
                 if r["item"] and r["item"] != "-- Select --":
                     batch_list = medicines_df[medicines_df["name"] == r["item"]]["batch"].unique().tolist()
@@ -1253,39 +1256,42 @@ with tab9:
                 )
                 r["batch"] = selected_batch
 
-            # AUTO-FILL when batch selected
+            # --- AUTO-FILL AFTER BATCH SELECT ---
             if r["batch"] and r["batch"] != "-- Select --":
                 batch_row = medicines_df[
                     (medicines_df["name"] == r["item"]) &
                     (medicines_df["batch"] == r["batch"])
-                ].iloc[0]
-                r["mrp"] = float(batch_row["mrp"])
-                r["rate"] = float(batch_row["rate"])
-                r["gst"] = float(batch_row["gst"])
+                ]
 
-            # MRP INPUT
+                if not batch_row.empty:
+                    r["mrp"] = float(batch_row.iloc[0]["mrp"])
+                    r["rate"] = float(batch_row.iloc[0]["rate"])
+                    r["gst"] = float(batch_row.iloc[0]["gst"])
+
+            # --- MRP ---
             with c[2]:
                 r["mrp"] = st.number_input("MRP", min_value=0.0, value=float(r["mrp"]), key=f"mrp_{i}")
 
-            # QTY
+            # --- QTY ---
             with c[3]:
                 r["qty"] = st.number_input("Qty", min_value=1, value=int(r["qty"]), key=f"qty_{i}")
 
-            # RATE
+            # --- RATE ---
             with c[4]:
                 r["rate"] = st.number_input("Rate", min_value=0.0, value=float(r["rate"]), key=f"rate_{i}")
 
-            # DISCOUNT
+            # --- DISCOUNT ---
             with c[5]:
                 r["discount_percent"] = st.number_input("Discount %", min_value=0.0, value=float(r["discount_percent"]), key=f"disc_{i}")
 
-            # GST
+            # --- GST ---
             with c[6]:
                 r["gst"] = st.number_input("GST %", min_value=0.0, value=float(r["gst"]), key=f"gst_{i}")
 
             # DELETE ROW
             if st.button("🗑", key=f"del_{i}"):
                 remove_rows.append(i)
+
 
         # Remove deleted rows
         for i in sorted(remove_rows, reverse=True):
