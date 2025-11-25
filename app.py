@@ -1468,7 +1468,7 @@ with tab13:
     if selected_party != "--select--":
         party_row = ledger_df[ledger_df["party"] == selected_party].iloc[0]
         if "balance" in ledger_df.columns:
-            st.markdown(f"**Current balance:** Rs {party_row['balance']")
+            st.markdown(f"**Current balance:** Rs {party_row['balance']}")
         new_part_name = st.text_input("Party Name", value = party_row['party'])
         if "balance" in ledger_df.columns:
             new_balance = st.number_input("Balance", value = float(party_row['balance']), step = 1.0)
