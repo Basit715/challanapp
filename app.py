@@ -1209,13 +1209,34 @@ with tab9:
         remove_rows = []
 
         for i, row in enumerate(st.session_state.direct_bill_items):
+            medicine_df = load_medicines()
             st.markdown(f"#### Item {i+1}")
             c = st.columns([2, 2, 1.5, 1, 1.5, 1, 1])
 
             with c[0]:
-                row["item"] = st.text_input("Item", row["item"], key=f"item_{i}")
+                item_list = medicines_df["item"].unique().tolist()
+                selected_item = st.selectbox(
+                    "Item",
+                    options=["-- Select --"] + item_list,
+                    index=item_list.index(row["item"]) + 1 if row["item"] in item_list else 0,
+                    key=f"item_{i}"
+                
+                )
+                row['item'] = selected_item
+                
             with c[1]:
-                row["batch"] = st.text_input("Batch", row["batch"], key=f"batch_{i}")
+                if selected_item != "--select--":
+                    batch_list = medicines_df[medicines_df["item"] == selected_item]["batch"].unique().tolist()
+                else:
+                    batch_list = []
+                    selected_batch = st.select_box(
+                        "Batch",
+                        options = ["-- Select --"] + batch_list,
+                        index = batch_list.index(row["batch"]) + 1 if row["batch"] in batch_list else 0,
+                        key=f"batch_{i}"
+                    )
+                    row["batch"] = selected_batch
+    
             with c[2]:
                 row["mrp"] = st.number_input("MRP", min_value=0.0, value=row["mrp"], key=f"mrp_{i}")
             with c[3]:
