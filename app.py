@@ -1173,7 +1173,7 @@ with tab9:
 
                 # --- Save to daybook ---
                 new_bill_entry = {
-                    "bill_id": len(bill_df)+1
+                    "bill_id": len(bill_df)+1,
                     "party": selected_party,
                     "date": str(date.today()),
                     "total_amount": bill_total,
