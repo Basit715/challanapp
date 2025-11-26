@@ -1410,27 +1410,42 @@ with tab9:
             ledger_df = pd.concat([ledger_df, pd.DataFrame([ledger_entry])],ignore_index = True)
         save_ledger(ledger_df)
 
-        #updating stocks 
         medicines_df = load_medicines()
+
         for r in st.session_state.direct_bill_items:
-            med_name = str(r["item"]).strip().upper()
+            med_name = str(r["selected_med"]).strip().upper()
             batch = str(r["batch"]).strip().upper()
             qty_sold = float(r["qty"])
 
-            match = medicines_df[
-            (medicines_df["name"].astype(str).str.strip().str.upper() == med_name) &
-            (medicines_df["batch"].astype(str).str.strip().str.upper() == batch)
-        ]
-            if not match.empty:
-                idx = match.index[0]
-                medicines_df.at[idx, "qty"] = float(medicines_df.at[idx, "qty"]) - qty_sold
-                if medicines_df.at[idx, "qty"] < 0:
-                    medicines_df.at[idx, "qty"] = 0
-        save_medicines(medicines_df)
-            
+            # find medicine (exact or partial match)
+            temp = medicines_df[
+                medicines_df["batch"].astype(str).str.strip().str.upper() == batch
+            ]
 
-        st.success(f"GST Bill Saved! Ledger updated")
-        st.session_state.direct_bill_items = []
+            match = temp[
+                temp["name"].astype(str).str.strip().str.upper() == med_name
+            ]
+
+            # fallback partial match
+            if match.empty:
+                match = temp[
+                    temp["name"].astype(str).str.strip().str.upper().str.contains(med_name)
+                ]
+
+            if match.empty:
+                st.error(f"❌ No match for: {med_name} | Batch: {batch}")
+                continue
+
+            idx = match.index[0]
+
+            old_qty = float(medicines_df.at[idx, "qty"])
+            new_qty = max(old_qty - qty_sold, 0)
+
+            medicines_df.at[idx, "qty"] = new_qty
+
+        save_medicines(medicines_df)
+        st.success("Stock updated successfully!")
+
 with tab10:
     st.title("Retailer Purchase Rate (PTR) Calculator")
     st.caption("Adjust percentages to match your system")
