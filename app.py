@@ -1525,7 +1525,7 @@ with tab11:
     st.subheader("Weekly Earning Chart")
     df_week = daily_earnings_df.copy()
     df_week['Date'] = pd.to_datetime(df_week['DATE'])
-    df_week['Week'] = df_week['DATE'].isocalender().week
+    df_week['Week'] = df_week['DATE'].dt.isocalender().week
     df_week['Year'] = df_week['DATE'].dt.year
     weekly_df = df_week.groupby(['Year','Week'],as_index = False)['EARNING'].sum()
     weekly_df['Week_Label'] = ("Week" + Weekly_df['Week'].astype(str) + " " + Weekly_df['Year'].astype(str))
