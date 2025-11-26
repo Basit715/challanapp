@@ -276,7 +276,7 @@ if daily_earnings_df.empty:
         {"DATE":"2025/11/12","MRP":10,"PTR":6,"PTS":3,"QUANTITY":10,"EARNING":30}
     ])
     daily_earnings_df = pd.concat([daily_earnings_df,starting_entries],ignore_index = True)
-    save_daily_earnings(daily_earning_df)
+    save_daily_earnings(daily_earnings_df)
 def load_bills():
     try:
         df = read_excel_from_drive(BILLS_ID)
