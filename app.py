@@ -1398,28 +1398,29 @@ with tab9:
 
 
         # --- Update ledger ---
+        # --- Update ledger balance only ---
         ledger_df = load_ledger()
-        ledger_df['party']  = ledger_df['party'].str.strip()
+        ledger_df['party'] = ledger_df['party'].str.strip()
         selected_party = selected_party.strip()
-        party_rows = ledger_df[ledger_df['party'] == selected_party]
+
         if selected_party in ledger_df['party'].values:
-            idx  = ledger_df[ledger_df['party'] == selected_party].index[0]
+            idx = ledger_df[ledger_df['party'] == selected_party].index[0]
             ledger_df.at[idx, 'balance'] += grand_total
-            ledger_df.at[idx, 'amount'] += grand_total
-            ledger_df.at[idx, 'date']  = str(date.today())
+            ledger_df.at[idx, 'date'] = str(date.today())
         else:
             ledger_entry = {
-                "entry_id":len(ledger_df)+1,
-                "party":selected_party,
-                "date":str(date.today()),
-                "type":"credit",
-                "amount":grand_total,
-                "balance":grand_total,
-                "note":"Direct Bill Gst"
-            
+                "entry_id": len(ledger_df) + 1,
+                "party": selected_party,
+                "date": str(date.today()),
+                "type": "opening",
+                "amount": 0,                     # ❗ NO bill amount here
+                "balance": grand_total,
+                "note": "Opening balance auto-created"
             }
-            ledger_df = pd.concat([ledger_df, pd.DataFrame([ledger_entry])],ignore_index = True)
+            ledger_df = pd.concat([ledger_df, pd.DataFrame([ledger_entry])], ignore_index=True)
+
         save_ledger(ledger_df)
+
 
         medicines_df = load_medicines()
 
