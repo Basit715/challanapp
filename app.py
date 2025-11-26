@@ -1223,9 +1223,7 @@ with tab9:
     # 2️⃣ DIRECT BILLING (WITH GST)
     # ==============================================================
     else:
-        st.write("Medicines DF Columns:", medicines_df.columns.tolist())
-        st.write("Sample rows:", medicines_df.head())
-        st.write("Direct bill items:", st.session_state.direct_bill_items)
+
 
         st.subheader("🧾 Direct Billing (GST + Discount)")
 
