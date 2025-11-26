@@ -1181,9 +1181,9 @@ with tab9:
                     "note": f"Billed from {len(challan_selected)} challans"
                 }
 
-                daybook_df = load_daybook()
-                daybook_df = pd.concat([daybook_df, pd.DataFrame([new_bill_entry])], ignore_index=True)
-                save_daybook(daybook_df)
+                bills_df = load_bills()
+                daybook_df = pd.concat([bills_df, pd.DataFrame([new_bill_entry])], ignore_index=True)
+                save_bills(bills_df)
 
                 # --- Update ledger ---
                 ledger_df = load_ledger()
