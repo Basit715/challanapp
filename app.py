@@ -1413,7 +1413,7 @@ with tab9:
         medicines_df = load_medicines()
 
         for r in st.session_state.direct_bill_items:
-            med_name = str(r["selected_med"]).strip().upper()
+            med_name = str(r["item"]).strip().upper()
             batch = str(r["batch"]).strip().upper()
             qty_sold = float(r["qty"])
 
