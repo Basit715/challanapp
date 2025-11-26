@@ -1528,7 +1528,7 @@ with tab11:
     df_week['Week'] = df_week['DATE'].dt.isocalendar().week
     df_week['Year'] = df_week['DATE'].dt.year
     weekly_df = df_week.groupby(['Year','Week'],as_index = False)['EARNING'].sum()
-    weekly_df['Week_Label'] = ("Week" + weekly_df['Week'].astype(str) + " " + weekly_df['Year'].astype(str))
+    weekly_df['Week_Label'] = ("Week " + weekly_df['Week'].astype(str) + " " + weekly_df['Year'].astype(str))
     st.write('###weekly Trend')
     st.line_chart(weekly_df, x = "Week_Label", y = "EARNING")
     st.write("###Weekly Bar chart")
