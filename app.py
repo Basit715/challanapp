@@ -1187,6 +1187,8 @@ with tab9:
             
                 # --- Update ledger ---
                 ledger_df = load_ledger()
+                ledger_df['party'] = ledger_df['party'].apply(lambda x: str(x).strip())
+                selected_party = str(selected_party).strip()
                 if not ledger_df[ledger_df['party'] == selected_party].empty:
                     last_balance = float(ledger_df[ledger_df['party'] == selected_party]['balance'].iloc[-1])
                 else:
