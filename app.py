@@ -1513,7 +1513,7 @@ with tab11:
 
     if not daily_earnings_df.empty:
         # Select which day's earnings to view
-        selected_date = st.date_input("Select Date", value=date.today().strftime("%Y-%m-%d"))
+        selected_date = st.date_input("Select Date", value=date.today())
         df_day = daily_earnings_df[daily_earnings_df["DATE"] == selected_date.strftime("%Y-%m-%d")]
 
         if not df_day.empty:
