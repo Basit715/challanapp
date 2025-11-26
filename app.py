@@ -261,13 +261,13 @@ if recurring_df.empty:
 @st.cache_data
 def load_daily_earnings():
     try:
-        df = read_excel_from_drive(DAILY_EARNING_ID)
+        df = read_excel_from_drive(DAILY_EARNINGS_ID)
         return df.fillna("")
     except:
         return pd.DataFrame(columns = ["DATE","MRP","PTR","PTS","QUANTITY","EARNING"])
 def save_daily_earnings(df):
     try:
-        write_excel_to_drive(df, DAILY_EARNING_ID)
+        write_excel_to_drive(df, DAILY_EARNINGS_ID)
     except EXCEPTION as e:
         st.error(f"Error Saving daily_earning {e}")
 daily_earning_df = load_daily_earnings()
