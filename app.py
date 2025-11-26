@@ -1164,6 +1164,7 @@ with tab9:
             total_amount = merged_items["amount"].sum()
 
             st.markdown(f"### **Total (No GST): ₹{total_amount}**")
+            bill_df = load_bills()
 
             if st.button("💾 Save Bill from Challans"):
 
@@ -1172,6 +1173,7 @@ with tab9:
 
                 # --- Save to daybook ---
                 new_bill_entry = {
+                    "bill_id": len(bill_df)+1
                     "party": selected_party,
                     "date": str(date.today()),
                     "total_amount": bill_total,
