@@ -100,6 +100,16 @@ APP_TITLE = "💊 NEW PharmaWAYS — WE SELL QUALITY MEDICINES"
 st.set_page_config(page_title="Pharma Challan Manager", layout="wide", initial_sidebar_state="auto")
 st.markdown("""
 <style>
+/* Button pressed (active) animation */
+.stButton>button:active, .stDownloadButton>button:active {
+    transform: scale(0.95);
+    background: linear-gradient(90deg, #1e90ff, #5ab2ff) !important;
+    box-shadow: 0 2px 6px rgba(46,166,255,0.20) inset;
+}
+</style>
+""", unsafe_allow_html=True)
+st.markdown("""
+<style>
 :root{
   --bg: #08090b;
   --panel: #0b1220;
