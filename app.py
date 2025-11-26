@@ -1181,7 +1181,7 @@ with tab9:
                     "items":json.dumps(items_json),
                     "gst": 0,
                     "discount": 0,
-                    "grand_total": bill_total,
+                    "bill_amount": bill_total,
                     "note": f"Billed from {len(challan_selected)} challans"
                 }
 
