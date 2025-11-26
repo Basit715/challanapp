@@ -1507,7 +1507,7 @@ with tab11:
     st.title("Daily Earnings Tracker")
 
     daily_earnings_df = load_daily_earnings()
-    st.write(daily_earnings_df.columns)
+
 
     if not daily_earnings_df.empty:
         # Select which day's earnings to view
