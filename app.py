@@ -273,7 +273,7 @@ def save_daily_earnings(df):
 daily_earnings_df = load_daily_earnings()
 if daily_earnings_df.empty:
     starting_entries = pd.DataFrame([
-        {"DATE":"2025/11/12","MRP":10,"PTR":6,"PTS":3,"QUANTITY":10,"EARNING":30}
+        {"DATE":"2025-11-12","MRP":10,"PTR":6,"PTS":3,"QUANTITY":10,"EARNING":30}
     ])
     daily_earnings_df = pd.concat([daily_earnings_df,starting_entries],ignore_index = True)
     save_daily_earnings(daily_earnings_df)
@@ -1470,7 +1470,8 @@ with tab9:
 
         save_medicines(medicines_df)
         st.success("Stock updated successfully!")
-
+if "daily_earnings_df" not in st.session_state:
+    st.session_state.daily_earnings_df = load_daily_earnings()
 with tab10:
     st.title("Retailer Purchase Rate (PTR) Calculator")
     st.caption("Adjust percentages to match your system")
@@ -1499,12 +1500,13 @@ with tab10:
         "QUANTITY": quantity,
         "EARNING": total_earning
     }
-        daily_earnings_df = pd.concat([daily_earnings_df, pd.DataFrame([new_row])], ignore_index=True)
+        st.session_state.daily_earnings_df = pd.concat([daily_earnings_df, pd.DataFrame([new_row])], ignore_index=True)
         save_daily_earnings(daily_earnings_df)
         st.success(f"₹ {total_earning} added to daily earnings for {date.today().strftime('%Y-%m-%d')}")
         
 with tab11:
     st.title("Daily Earnings Tracker")
+    daily_earnings_df = st.session_state.daily_earnings_df
 
     daily_earnings_df = load_daily_earnings()
 
