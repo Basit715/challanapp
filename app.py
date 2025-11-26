@@ -1171,16 +1171,14 @@ with tab9:
                 bill_total = sum(c['total_amount'] for c in selected_challans)
                 selected_party = sorted(challans_df["party"].dropna().unique().tolist())
             
-                # Save to daybook
-                selected_party = party_sel.strip()
                 #save bill to bill sheet
                 bill_df = load_bills()
                 new_bill = {
                     "bill_id": len(bill_df)+1,
                     "party":selected_party,
                     "date":str(date.today()),
-                    "items":json.dumps(st.session_state.direct_bill_items),
-                    "bill_amount":grand_total
+                    "items":json.dumps(selected_challans),
+                    "bill_amount":bill_total
                     }
                 bill_df = pd.concat([bill_df,pd.DataFrame([new_bill])],ignore_index=True)
                 save_bill(bill_df)
