@@ -268,7 +268,7 @@ def load_daily_earnings():
 def save_daily_earnings(df):
     try:
         write_excel_to_drive(df, DAILY_EARNINGS_ID)
-    except EXCEPTION as e:
+    except Exception as e:
         st.error(f"Error Saving daily_earning {e}")
 daily_earnings_df = load_daily_earnings()
 if daily_earnings_df.empty:
