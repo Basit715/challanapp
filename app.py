@@ -593,6 +593,7 @@ with tab1:
                 "date": date_val.strftime("%Y-%m-%d"),
                 "party": party,
                 "item": selected_med,
+                "item_display":item_name,
                 "batch": selected_batch if selected_batch and selected_batch!="-- select batch --" else "",
                 "qty": qty,
                 "rate": rate,
