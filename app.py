@@ -1518,7 +1518,7 @@ with tab11:
         if not df_day.empty:
             st.subheader(f"Earnings for {selected_date.strftime('%Y-%m-%d')}")
             st.dataframe(df_day[["MRP", "PTR", "PTS", "QUANTITY", "EARNING"]])
-            total_day_earnings = df_day["Earning"].sum()
+            total_day_earnings = df_day["EARNING"].sum()
             st.subheader(f"Total Earnings: ₹ {round(total_day_earnings,2)}")
         else:
             st.info("No earnings recorded for this day.")
