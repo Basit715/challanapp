@@ -1172,7 +1172,7 @@ with tab9:
                 selected_party = sorted(challans_df["party"].dropna().unique().tolist())
             
                 # Save to daybook
-                selected_party = selected_party.strip()
+                selected_party = party_sel.strip()
                 #save bill to bill sheet
                 bill_df = load_bills()
                 new_bill = {
