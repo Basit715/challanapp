@@ -1508,7 +1508,6 @@ with tab11:
     st.title("Daily Earnings Tracker")
     daily_earnings_df = st.session_state.daily_earnings_df
 
-    daily_earnings_df = load_daily_earnings()
 
 
     if not daily_earnings_df.empty:
