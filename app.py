@@ -1537,7 +1537,7 @@ with tab11:
              
         
         # Optional: delete entries for selected date
-        if st.button("Delete Earnings for this Date"):
+    if st.button("Delete Earnings for this Date"):
             daily_earnings_df = daily_earnings_df[daily_earnings_df["DATE"] != selected_date.strftime("%Y-%m-%d")]
             save_daily_earnings(daily_earnings_df)
             st.success("Earnings deleted for selected date.")
