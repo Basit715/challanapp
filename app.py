@@ -1172,18 +1172,18 @@ with tab9:
                 selected_party = sorted(challans_df["party"].dropna().unique().tolist())
             
                 # Save to daybook
-                new_bill_entry = {
-                    "party": selected_party,
-                    "date": str(date.today()),
-                    "total_amount": bill_total,
-                    "gst": 0, # Assuming no GST for challan billing
-                    "discount": 0,
-                    "grand_total": bill_total,
-                    "note": f"Billed from {len(selected_challans)} challans"
-                }
-                daybook_df = load_daybook()
-                daybook_df = pd.concat([daybook_df, pd.DataFrame([new_bill_entry])], ignore_index=True)
-                save_daybook(daybook_df)
+                selected_party = selected_party.strip()
+                #save bill to bill sheet
+                bill_df = load_bills()
+                new_bill = {
+                    "bill_id": len(bill_df)+1,
+                    "party":selected_party,
+                    "date":str(date.today()),
+                    "items":json.dumps(st.session_state.direct_bill_items),
+                    "bill_amount":grand_total
+                    }
+                bill_df = pd.concat([bill_df,pd.DataFrame([new_bill])],ignore_index=True)
+                save_bill(bill_df)
             
                 # --- Update ledger ---
                 ledger_df = load_ledger()
