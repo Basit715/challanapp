@@ -572,12 +572,16 @@ with tab1:
                         stock_text = f"Stock: {batch_row.iloc[0]['qty']}"
                 st.markdown(stock_text)
             with c3:
+                selected_med_str = str(selected_med).strip()
+                selected_batch_str = str(selected_batch).strip()
+
+
                 # autofill rate & gst from selected batch if available
                 rate_default = 0.0
                 gst_default = DEFAULT_GST
                 mrp_default = 0.0
-                if selected_med and selected_batch and selected_batch != "-- select batch --":
-                    br = med_df[(med_df["name"]==selected_med) & (med_df["batch"]==selected_batch)]
+                if selected_med_str and selected_batch and selected_batch_str != "-- select batch --":
+                    br = med_df[(med_df["name"]==selected_med_str) & (med_df["batch"]==selected_batch_str)]
                     if not br.empty:
                         rate_default = float(br.iloc[0]["rate"] or 0.0)
                         gst_default = float(br.iloc[0]["gst"] or DEFAULT_GST)
@@ -593,7 +597,6 @@ with tab1:
                 "date": date_val.strftime("%Y-%m-%d"),
                 "party": party,
                 "item": selected_med,
-                "item_display":item_name,
                 "batch": selected_batch if selected_batch and selected_batch!="-- select batch --" else "",
                 "qty": qty,
                 "rate": rate,
