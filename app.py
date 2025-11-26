@@ -1190,37 +1190,48 @@ with tab9:
                 save_bill(bills_df)
 
                 # --- Update ledger balance only ---
+                # --- Update Ledger Cumulative Balance ---
                 ledger_df = load_ledger()
-                ledger_df['party'] = ledger_df['party'].str.strip()
+
+                # Clean party column
+                ledger_df['party'] = ledger_df['party'].astype(str).str.strip()
                 selected_party = selected_party.strip()
 
+                # Filter ledger rows for party
                 party_rows = ledger_df[ledger_df['party'] == selected_party]
 
                 if not party_rows.empty:
-                    # update only balance, not amount
-                    idx = party_rows.index[-1]   # last entry of that party
+                    # Find last row of this party
+                    last_idx = party_rows.index[-1]
 
-                    previous_balance = float(ledger_df.at[idx, "balance"])
+                    # Read last balance safely
+                    last_balance = ledger_df.at[last_idx, "balance"]
 
-                    new_balance = previous_balance + grand_total
+                    try:
+                        last_balance = float(last_balance)
+                    except:
+                        last_balance = 0.0  # Handle blank / NaN / wrong types
 
-                    ledger_df.at[idx, "balance"] = new_balance
-                    ledger_df.at[idx, "date"] = str(date.today())
-
+                    new_balance = last_balance + grand_total
                 else:
-                    # first time party appears in ledger
-                    ledger_entry = {
-                        "entry_id": len(ledger_df) + 1,
-                        "party": selected_party,
-                        "date": str(date.today()),
-                        "type": "opening",
-                        "amount": 0,              # not a bill entry
-                        "balance": grand_total,
-                        "note": "Opening balance created automatically"
-                    }
-                    ledger_df = pd.concat([ledger_df, pd.DataFrame([ledger_entry])], ignore_index=True)
+                    # First transaction for this party
+                    new_balance = grand_total
 
+                # Build new ledger row
+                new_entry = {
+                    "entry_id": len(ledger_df) + 1,
+                    "party": selected_party,
+                    "date": str(date.today()),
+                    "type": "Credit",
+                    "amount": grand_total,
+                    "balance": new_balance,
+                    "note": "Bill GST"  # or "Bill No GST" depending on screen
+                }
+
+                # Append into ledger
+                ledger_df = pd.concat([ledger_df, pd.DataFrame([new_entry])], ignore_index=True)
                 save_ledger(ledger_df)
+
 
                                 
             
