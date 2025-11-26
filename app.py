@@ -572,7 +572,7 @@ with tab1:
                         stock_text = f"Stock: {batch_row.iloc[0]['qty']}"
                 st.markdown(stock_text)
             with c3:
-                selected_med_str = str(selected_med).strip()
+                selected_med_str = str(selected_med).strip().lower()
                 selected_batch_str = str(selected_batch).strip()
 
 
@@ -1413,17 +1413,17 @@ with tab9:
         #updating stocks 
         medicines_df = load_medicines()
         for r in st.session_state.direct_bill_items:
-            item_name = r["item"]
-            batch = r["batch"]
-            qty_sold = r["qty"]
+            med_name = str(r["selected_med"]).strip().upper()
+            batch = str(r["batch"]).strip().upper()
+            qty_sold = float(r["qty"])
 
             match = medicines_df[
-            (medicines_df["name"] == item_name) &
-            (medicines_df["batch"] == batch)
+            (medicines_df["name"].astype(str).str.strip().str.upper() == med_name) &
+            (medicines_df["batch"].astype(str).str.strip().str.upper() == batch)
         ]
             if not match.empty:
                 idx = match.index[0]
-                medicines_df.at[idx, "qty"] -= qty_sold
+                medicines_df.at[idx, "qty"] = float(medicines_df.at[idx, "qty"]) - qty_sold
                 if medicines_df.at[idx, "qty"] < 0:
                     medicines_df.at[idx, "qty"] = 0
         save_medicines(medicines_df)
