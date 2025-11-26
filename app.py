@@ -1183,7 +1183,7 @@ with tab9:
 
                 bills_df = load_bills()
                 daybook_df = pd.concat([bills_df, pd.DataFrame([new_bill_entry])], ignore_index=True)
-                save_bills(bills_df)
+                save_bill(bills_df)
 
                 # --- Update ledger ---
                 ledger_df = load_ledger()
