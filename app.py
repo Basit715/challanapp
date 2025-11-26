@@ -1157,6 +1157,7 @@ with tab9:
         if challan_selected:
             # Filter items from selected challans
             merged_items = challans_df[challans_df["challan_no"].isin(challan_selected)]
+            items_json = merged_items.to_dict(orient="records")
 
             st.write("### Merged Items")
             st.dataframe(merged_items, use_container_width=True)
@@ -1168,7 +1169,7 @@ with tab9:
 
             if st.button("💾 Save Bill from Challans"):
 
-                selected_party = party_sel     # FIXED
+                selected_party = party_sel.strip()     # FIXED
                 bill_total = total_amount      # FIXED
 
                 # --- Save to daybook ---
@@ -1177,6 +1178,7 @@ with tab9:
                     "party": selected_party,
                     "date": str(date.today()),
                     "total_amount": bill_total,
+                    "items":json.dumps(items_json),
                     "gst": 0,
                     "discount": 0,
                     "grand_total": bill_total,
