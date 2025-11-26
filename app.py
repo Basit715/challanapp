@@ -417,8 +417,6 @@ def daybook_to_pdf_bytes(db_df, title="Day Book"):
 init_files()
 challans_df = load_challans()
 med_df = load_medicines()
-st.write(med_df.dtypes)
-st.write(med_df.head(20))
 daybook_df = load_daybook()
 
 # ---------------- UI ----------------
