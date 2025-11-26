@@ -271,7 +271,7 @@ def save_daily_earnings(df):
     except EXCEPTION as e:
         st.error(f"Error Saving daily_earning {e}")
 daily_earnings_df = load_daily_earnings()
-if daily_earning_df.empty:
+if daily_earnings_df.empty:
     starting_entries = pd.DataFrame([
         {"DATE":"2025/11/12","MRP":10,"PTR":6,"PTS":3,"QUANTITY":10,"EARNING":30}
     ])
