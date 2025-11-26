@@ -1491,7 +1491,7 @@ with tab10:
     st.write(f"Price to Stokist: Rs {PTS}")
     st.write(f"Your earning:{total_earning}")
     if st.button("Add to Daily Earnings"):
-        daily_earnings_df = load_daily_earnings()
+    
         new_row = {
         "DATE": date.today().strftime("%Y-%m-%d"),
         "MRP": mrp,
@@ -1500,8 +1500,8 @@ with tab10:
         "QUANTITY": quantity,
         "EARNING": total_earning
     }
-        st.session_state.daily_earnings_df = pd.concat([daily_earnings_df, pd.DataFrame([new_row])], ignore_index=True)
-        save_daily_earnings(daily_earnings_df)
+        st.session_state.daily_earnings_df = pd.concat([st.session_state.daily_earnings_df, pd.DataFrame([new_row])], ignore_index=True)
+        save_daily_earnings(st.session_state.daily_earnings_df)
         st.success(f"₹ {total_earning} added to daily earnings for {date.today().strftime('%Y-%m-%d')}")
         
 with tab11:
