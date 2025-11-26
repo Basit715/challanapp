@@ -429,8 +429,6 @@ if "daily_earnings" not in st.session_state:
     st.session_state.daily_earnings = []  # list to store earnings of each calculation
 if 'direct_bill_items' not in st.session_state:
     st.session_state.direct_bill_items = []
-if "selected_challans" not in st.session_state:
-    st.session_state.selected_challans = []
 
 tab1,tab2,tab3,tab4,tab5,tab6,tab7,tab8,tab9,tab10,tab11,tab12,tab13,tab14 = st.tabs(["Challans", "Medicines (Inventory)", "Reports / Utilities", "Day Book",
      "Dashboard", "Advertisement", "Ledger", "Recurring Payment", "Billing","Calculator","Daily Earnings","Special Discount","Edit Party / view & Update balance","Sales Book"])
@@ -588,7 +586,7 @@ with tab1:
                         rate_default = float(br.iloc[0]["rate"] or 0.0)
                         gst_default = float(br.iloc[0]["gst"] or DEFAULT_GST)
                         mrp_default = float(br.iloc[0]["mrp"] or 0.0)
-
+                mrp = st.number_input(f"MRP {i+1}", min_value=0.0, value=float(mrp_default),key=f"mrp_{challan_no}_{i}")
                 rate = st.number_input(f"Rate {i+1}", min_value=0.0, value=float(rate_default), key=f"rate_{challan_no}_{i}")
                 discount = st.number_input(f"Discount % {i+1}", min_value=0.0, max_value=100.0, value=0.0, key=f"disc_{challan_no}_{i}")
                 gst = st.number_input(f"GST % {i+1}", min_value=0.0, max_value=28.0, value=float(gst_default), key=f"gst_{challan_no}_{i}")
@@ -1166,34 +1164,39 @@ with tab9:
             total_amount = merged_items["amount"].sum()
 
             st.markdown(f"### **Total (No GST): ₹{total_amount}**")
+
             if st.button("💾 Save Bill from Challans"):
-                selected_challans = st.session_state.selected_challans # assume this is your list
-                bill_total = sum(c['total_amount'] for c in selected_challans)
-                selected_party = sorted(challans_df["party"].dropna().unique().tolist())
-            
-                #save bill to bill sheet
-                bill_df = load_bills()
-                new_bill = {
-                    "bill_id": len(bill_df)+1,
-                    "party":selected_party,
-                    "date":str(date.today()),
-                    "items":json.dumps(selected_challans),
-                    "bill_amount":bill_total
-                    }
-                bill_df = pd.concat([bill_df,pd.DataFrame([new_bill])],ignore_index=True)
-                save_bill(bill_df)
-            
+
+                selected_party = party_sel     # FIXED
+                bill_total = total_amount      # FIXED
+
+                # --- Save to daybook ---
+                new_bill_entry = {
+                    "party": selected_party,
+                    "date": str(date.today()),
+                    "total_amount": bill_total,
+                    "gst": 0,
+                    "discount": 0,
+                    "grand_total": bill_total,
+                    "note": f"Billed from {len(challan_selected)} challans"
+                }
+
+                daybook_df = load_daybook()
+                daybook_df = pd.concat([daybook_df, pd.DataFrame([new_bill_entry])], ignore_index=True)
+                save_daybook(daybook_df)
+
                 # --- Update ledger ---
                 ledger_df = load_ledger()
-                ledger_df['party'] = ledger_df['party'].apply(lambda x: str(x).strip())
+
+                # Clean party column
+                ledger_df['party'] = ledger_df['party'].astype(str).str.strip()
                 selected_party = str(selected_party).strip()
-                if not ledger_df[ledger_df['party'] == selected_party].empty:
-                    last_balance = float(ledger_df[ledger_df['party'] == selected_party]['balance'].iloc[-1])
-                else:
-                    last_balance = 0.0
-            
+
+                party_rows = ledger_df[ledger_df['party'] == selected_party]
+                last_balance = float(party_rows['balance'].iloc[-1]) if not party_rows.empty else 0.0
+
                 new_balance = last_balance + bill_total
-            
+
                 ledger_entry = {
                     "entry_id": len(ledger_df) + 1,
                     "party": selected_party,
@@ -1201,16 +1204,18 @@ with tab9:
                     "type": "Credit",
                     "amount": bill_total,
                     "balance": new_balance,
-                    "note": f"Billed from {len(selected_challans)} challans"
+                    "note": f"Billed from {len(challan_selected)} challans"
                 }
+
                 ledger_df = pd.concat([ledger_df, pd.DataFrame([ledger_entry])], ignore_index=True)
                 save_ledger(ledger_df)
-            
-                # Optionally mark challans as billed
-                for c in selected_challans:
-                    c['billed'] = True
-            
+
+                # --- Mark challans as billed ---
+                challans_df.loc[challans_df["challan_no"].isin(challan_selected), "billed"] = True
+                save_challans(challans_df)
+
                 st.success(f"Challan Bill Saved! Ledger updated. New balance: ₹{new_balance:.2f}")
+
                                 
             
 
@@ -1225,8 +1230,6 @@ with tab9:
     # 2️⃣ DIRECT BILLING (WITH GST)
     # ==============================================================
     else:
-
-
         st.subheader("🧾 Direct Billing (GST + Discount)")
 
         # Select Party
