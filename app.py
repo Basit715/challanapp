@@ -1189,36 +1189,38 @@ with tab9:
                 bills_df = pd.concat([bills_df, pd.DataFrame([new_bill_entry])], ignore_index=True)
                 save_bill(bills_df)
 
-                # --- Update ledger ---
+                # --- Update ledger balance only ---
                 ledger_df = load_ledger()
-
-                # Clean party column
-                ledger_df['party'] = ledger_df['party'].astype(str).str.strip()
-                selected_party = str(selected_party).strip()
+                ledger_df['party'] = ledger_df['party'].str.strip()
+                selected_party = selected_party.strip()
 
                 party_rows = ledger_df[ledger_df['party'] == selected_party]
-                last_balance = float(party_rows['balance'].iloc[-1]) if not party_rows.empty else 0.0
 
-                new_balance = last_balance + bill_total
+                if not party_rows.empty:
+                    # update only balance, not amount
+                    idx = party_rows.index[-1]   # last entry of that party
 
-                ledger_entry = {
-                    "entry_id": len(ledger_df) + 1,
-                    "party": selected_party,
-                    "date": str(date.today()),
-                    "type": "Credit",
-                    "amount": bill_total,
-                    "balance": new_balance,
-                    "note": f"Billed from {len(challan_selected)} challans"
-                }
+                    previous_balance = float(ledger_df.at[idx, "balance"])
 
-                ledger_df = pd.concat([ledger_df, pd.DataFrame([ledger_entry])], ignore_index=True)
+                    new_balance = previous_balance + grand_total
+
+                    ledger_df.at[idx, "balance"] = new_balance
+                    ledger_df.at[idx, "date"] = str(date.today())
+
+                else:
+                    # first time party appears in ledger
+                    ledger_entry = {
+                        "entry_id": len(ledger_df) + 1,
+                        "party": selected_party,
+                        "date": str(date.today()),
+                        "type": "opening",
+                        "amount": 0,              # not a bill entry
+                        "balance": grand_total,
+                        "note": "Opening balance created automatically"
+                    }
+                    ledger_df = pd.concat([ledger_df, pd.DataFrame([ledger_entry])], ignore_index=True)
+
                 save_ledger(ledger_df)
-
-                # --- Mark challans as billed ---
-                challans_df.loc[challans_df["challan_no"].isin(challan_selected), "billed"] = True
-                save_challans(challans_df)
-
-                st.success(f"Challan Bill Saved! Ledger updated. New balance: ₹{new_balance:.2f}")
 
                                 
             
