@@ -1492,7 +1492,7 @@ with tab10:
     if st.button("Add to Daily Earnings"):
         daily_earnings_df = load_daily_earnings()
         new_row = {
-        "Date": date.today().strftime("%Y-%m-%d"),
+        "DATE": date.today().strftime("%Y-%m-%d"),
         "MRP": mrp,
         "PTR": PTR,
         "PTS": PTS,
