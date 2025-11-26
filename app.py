@@ -1522,6 +1522,19 @@ with tab11:
             st.subheader(f"Total Earnings: ₹ {round(total_day_earnings,2)}")
         else:
             st.info("No earnings recorded for this day.")
+    st.subheader("Weekly Earning Chart")
+    df_week = daily_earnings.copy()
+    df_week['Date'] = pd.to_datetime(df_week['Date'])
+    df_week['Week'] = df_week['Date'].isocalender().week
+    df_week['Year'] = df_week['Date'].dt.year
+    weekly_df = df_week.groupby(['Year','Week'],as_index = False)['EARNING'].sum()
+    weekly_df['Week_Label'] = ("Week" + Weekly_df['Week'].astype(str) + " " + Weekly_df['Year'].astype(str))
+    st.write('###weekly Trend')
+    st.line_chart(Weekly_df, x = "Week_Label", y = "EARNING")
+    st.write("###Weekly Bar chart")
+    st.bar_chart(Weekly_df, x = 'Week_Label', y = 'EARNING')
+                  
+             
         
         # Optional: delete entries for selected date
         if st.button("Delete Earnings for this Date"):
