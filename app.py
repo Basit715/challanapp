@@ -1492,7 +1492,7 @@ with tab10:
     if st.button("Add to Daily Earnings"):
         daily_earnings_df = load_daily_earnings()
         new_row = {
-        "DATE": date.today().strftime("%Y-%m-%d"),
+        "DATE": date.today().strftime("%YYYY-%m-%d"),
         "MRP": mrp,
         "PTR": PTR,
         "PTS": PTS,
@@ -1515,7 +1515,7 @@ with tab11:
         df_day = daily_earnings_df[daily_earnings_df["DATE"] == selected_date.strftime("%Y-%m-%d")]
 
         if not df_day.empty:
-            st.subheader(f"Earnings for {selected_date.strftime('%Y-%m-%d')}")
+            st.subheader(f"Earnings for {selected_date.strftime('%YYYY-%m-%d')}")
             st.dataframe(df_day[["MRP", "PTR", "PTS", "Quantity", "Earning"]])
             total_day_earnings = df_day["Earning"].sum()
             st.subheader(f"Total Earnings: ₹ {round(total_day_earnings,2)}")
