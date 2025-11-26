@@ -88,7 +88,7 @@ LEDGER_FILE = os.path.join(DATA_DIR, "ledger.xlsx")
 LEDGER_ID = "1zg8jEUH3wibNvS6BfH6Jh0kcikXbfVsRFWKl9ZDMlSk"
 RECURRING_FILE = os.path.join(DATA_DIR,"recurring.xlsx")
 RECURRING_ID = "1Gti-tD9DlYpDqZUicvzmTBFKTYU-_NabM8i8etY0b4k"
-DAILY_EARNINGS_FILE = os.path.join(DATA_DIR, "daily_earning.xlsx")
+DAILY_EARNING_FILE = os.path.join(DATA_DIR, "daily_earning.xlsx")
 DAILY_EARNINGS_ID = "1kx3GUOsWtkKiGbH_S6_983gEm8qkOcFtRWxh9teufx8"
 BILLS_FILE = os.path.join(DATA_DIR, "bills.xlsx")
 BILLS_ID = "1JneZFd8IuQGbUTFznvseUecVUweCKk5XgijTi5gOyOA"
@@ -258,7 +258,7 @@ if recurring_df.empty:
     ])
     recurring_df = pd.concat([recurring_df,starting_entrie],ignore_index=True)
     save_recurring(recurring_df)
-@st.cache_data
+    
 def load_daily_earnings():
     try:
         df = read_excel_from_drive(DAILY_EARNINGS_ID)
@@ -275,7 +275,7 @@ if daily_earnings_df.empty:
     starting_entries = pd.DataFrame([
         {"DATE":"2025/11/12","MRP":10,"PTR":6,"PTS":3,"QUANTITY":10,"EARNING":30}
     ])
-    daily_earning_df = pd.concat([daily_earnings_df,starting_entries],ignore_index = True)
+    daily_earnings_df = pd.concat([daily_earnings_df,starting_entries],ignore_index = True)
     save_daily_earnings(daily_earning_df)
 def load_bills():
     try:
