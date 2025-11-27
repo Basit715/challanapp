@@ -92,6 +92,8 @@ DAILY_EARNING_FILE = os.path.join(DATA_DIR, "daily_earnings.xlsx")
 DAILY_EARNINGS_ID = "1kx3GUOsWtkKiGbH_S6_983gEm8qkOcFtRWxh9teufx8"
 BILLS_FILE = os.path.join(DATA_DIR, "bills.xlsx")
 BILLS_ID = "1JneZFd8IuQGbUTFznvseUecVUweCKk5XgijTi5gOyOA"
+PAYMENTS_FILE = os.path.join(DATA_DIR,"payments.xlsx")
+PAYMENTS_ID = "1Ae6Q87LKAeN5_U8jfX8K-NfHX1JagGOtOkQc_R7ejCU"
 MAX_ITEMS = 50
 DEFAULT_GST = 5.0
 APP_TITLE = "💊 NEW PharmaWAYS — WE SELL QUALITY MEDICINES"
@@ -305,6 +307,20 @@ if bill_df.empty:
     ])
     bill_df = pd.concat([bill_df,starting_entries], ignore_index = True)
     save_bill(bill_df)
+def load_payments():
+    try:
+        df = read_excel_from_drive(PAYMENTS_ID)
+        return df.fillna("")
+    except Exception as e:
+        return pd.DataFrame(columns = ["date", "reciepts", "payments", "expenses"])
+def save_payments(df):
+    try:
+        write_excel_to_drive(df, PAYMENTS_ID)
+    except Exception as e:
+        st.error(f"Error saving payments {e}")
+        
+        
+        
 # ---------------- Calculations & PDF ----------------
 def compute_row_amount(qty, rate, discount_pct, gst_pct):
     try: q = float(qty)
