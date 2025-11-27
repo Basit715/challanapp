@@ -1462,57 +1462,40 @@ with tab9:
 
 
         # --- Update stock for each billed item ---
-        medicines_df = load_medicines()
-        medicines_df[['name','batch']] = medicines_df[['name','batch']].astype(str).apply(lambda s: s.str.strip())
-        medicines_df['qty'] = pd.to_numeric(medicines_df['qty'], errors='coerce').fillna(0)
+        med_df = load_medicines()
+        med_df['name'] = med_df['name'].astype(str).str.strip().str.upper()
+        med_df['qty'] = pd.to_numeric(med_df['qty'], errors='coerce').fillna(0)
 
         stock_errors = []
         for r in st.session_state.direct_bill_items:
-            med_name = str(r.get("item", "")).strip()
-            batch = str(r.get("batch", "")).strip()
+            med_name = str(r.get("name", "")).strip()
             try:
                 qty_sold = float(r.get("qty", 0))
             except Exception:
                 qty_sold = 0.0
 
-            if med_name in ("", "-- Select --") or batch in ("", "-- Select --"):
+            if med_name == "":
                 stock_errors.append(f"Invalid selection for item '{med_name}' / batch '{batch}' — skipping stock update.")
                 continue
 
             # Try exact match on batch + name first (case-insensitive)
-            matches = medicines_df[
-                (medicines_df["batch"].str.upper() == batch.upper()) &
-                (medicines_df["name"].str.upper() == med_name.upper())
-            ]
+            match = med_df[med_df["name"] == med_name]
 
             # fallback: same batch, partial name contains
-            if matches.empty:
-                matches = medicines_df[
-                    (medicines_df["batch"].str.upper() == batch.upper()) &
-                    (medicines_df["name"].str.upper().str.contains(med_name.upper(), na=False))
-                ]
-
-            # fallback: match by name only (best effort)
-            if matches.empty:
-                matches = medicines_df[
-                    (medicines_df["name"].str.upper() == med_name.upper())
-                ]
-
-            if matches.empty:
-                stock_errors.append(f"No stock match for: {med_name} | Batch: {batch}")
+            if match.empty:
+                stock_errors.append(f"❌ No stock found for: {med_name}")
                 continue
 
             # prefer the first match (you can adjust logic if you want)
-            idx = matches.index[0]
-            old_qty = float(medicines_df.at[idx, "qty"])
+            idx = match.index[0]
+            old_qty = float(med_df.at[idx, "qty"])
             if qty_sold > old_qty:
                 # warn but reduce to zero (or choose to prevent saving)
                 stock_errors.append(f"Insufficient stock for {med_name} | batch {batch}. Available {old_qty}, sold {qty_sold}. Setting to 0.")
                 new_qty = 0.0
             else:
-                new_qty = old_qty - qty_sold
+                med_df.at[idx, "qty"] = old_qty - qty_sold
 
-            medicines_df.at[idx, "qty"] = new_qty
 
         save_medicines(medicines_df)
 
@@ -1524,9 +1507,8 @@ with tab9:
         else:
             st.success(f"Bill saved (ID {new_bill['bill_id']}). Ledger and stock updated successfully.")
 
-        # clear the bill items so user has fresh form (optional)
-        st.session_state.direct_bill_items = []if "daily_earnings_df" not in st.session_state:
-st.session_state.daily_earnings_df = load_daily_earnings()
+if "daily_earnings_df" not in st.session_state:
+    st.session_state.daily_earnings_df = load_daily_earnings()
 with tab10:
     st.title("Retailer Purchase Rate (PTR) Calculator")
     st.caption("Adjust percentages to match your system")
