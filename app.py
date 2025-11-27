@@ -456,7 +456,7 @@ if "daily_earnings" not in st.session_state:
 if 'direct_bill_items' not in st.session_state:
     st.session_state.direct_bill_items = []
 
-tab1,tab2,tab3,tab4,tab5,tab6,tab7,tab8,tab9,tab10,tab11,tab12,tab13,tab14,15 = st.tabs(["Challans", "Medicines (Inventory)", "Reports / Utilities", "Day Book",
+tab1,tab2,tab3,tab4,tab5,tab6,tab7,tab8,tab9,tab10,tab11,tab12,tab13,tab14,tab15 = st.tabs(["Challans", "Medicines (Inventory)", "Reports / Utilities", "Day Book",
      "Dashboard", "Advertisement", "Ledger", "Recurring Payment", "Billing","Calculator","Daily Earnings","Special Discount","Edit Party / view & Update balance","Sales Book","Daily Payments"])
 
 # Tab order: Challans | Medicines | Reports | Day Book (user chose B)
