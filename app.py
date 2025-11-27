@@ -1461,6 +1461,7 @@ with tab9:
         save_ledger(ledger_df)
 
 
+        # --- Update stock for each billed item ---
         medicines_df = load_medicines()
         medicines_df[['name','batch']] = medicines_df[['name','batch']].astype(str).apply(lambda s: s.str.strip())
         medicines_df['qty'] = pd.to_numeric(medicines_df['qty'], errors='coerce').fillna(0)
