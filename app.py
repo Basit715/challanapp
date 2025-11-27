@@ -1647,6 +1647,22 @@ with tab15:
         save_payments(df)
     st.subheader("📘 Full Payment History")
     st.dataframe(df)
+    st.subheader("🗑 Delete Any Entry")
+    if len(df) > 0:
+        df["label"] = df.apply(
+            lambda row: f"{row['date']} | Receipts: ₹{row['receipts']} | Expenses: ₹{row['expenses']} | Balance: ₹{row['balance']}",axis=1)
+        selected_label = st.selectbox("Select entry to delete", df["label"].tolist())
+        if st.button("Delete Selected Entry"):
+            idx = df[df["label"] == selected_label].index[0]
+            df = df.drop(idx).reset_index(drop=True)
+            if len(df) > 0:
+                df["balance"] = df["receipts"].cumsum() - df["expenses"].cumsum()
+            else:
+                df["balance"] = []
+            save_payments(df)
+            st.success("Entry deleted successfully!")
+    else:
+        st.info("No entries available to delete.")
 
 
        
