@@ -1643,6 +1643,8 @@ with tab15:
             "expenses": todays_expenses,
             "balance": new_balance
         }
+        df = df.append(new_row, ignore_index=True)
+        save_payments(df)
     st.subheader("📘 Full Payment History")
     st.dataframe(df)
 
