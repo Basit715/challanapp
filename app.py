@@ -456,8 +456,8 @@ if "daily_earnings" not in st.session_state:
 if 'direct_bill_items' not in st.session_state:
     st.session_state.direct_bill_items = []
 
-tab1,tab2,tab3,tab4,tab5,tab6,tab7,tab8,tab9,tab10,tab11,tab12,tab13,tab14 = st.tabs(["Challans", "Medicines (Inventory)", "Reports / Utilities", "Day Book",
-     "Dashboard", "Advertisement", "Ledger", "Recurring Payment", "Billing","Calculator","Daily Earnings","Special Discount","Edit Party / view & Update balance","Sales Book"])
+tab1,tab2,tab3,tab4,tab5,tab6,tab7,tab8,tab9,tab10,tab11,tab12,tab13,tab14,15 = st.tabs(["Challans", "Medicines (Inventory)", "Reports / Utilities", "Day Book",
+     "Dashboard", "Advertisement", "Ledger", "Recurring Payment", "Billing","Calculator","Daily Earnings","Special Discount","Edit Party / view & Update balance","Sales Book","Daily Payments"])
 
 # Tab order: Challans | Medicines | Reports | Day Book (user chose B)
 
@@ -1626,6 +1626,27 @@ with tab14:
                   st.warning("Cannot parse items for this bill")
           else:
               st.warning("Bill not Found")
+with tab15:
+    st.title("💰 Daily Payment Book")
+    df = load_payments()
+    prev_balance = df["balance"].iloc[-1] if len(df) > 0 else 0
+    st.info(f"**Previous Balance: ₹ {prev_balance}**")
+    st.subheader("Enter Today’s Figures")
+    today = date.today()
+    todays_receipts = st.number_input("Today's Receipts (₹)", min_value=0, value=0, step=100)
+    todays_expenses = st.number_input("Today's Expenses (₹)", min_value=0, value=0, step=100)
+    if st.button("Save Today’s Entry"):
+        new_balance = prev_balance + todays_receipts - todays_expenses
+        new_row = {
+            "date": str(today),
+            "receipts": todays_receipts,
+            "expenses": todays_expenses,
+            "balance": new_balance
+        }
+    st.subheader("📘 Full Payment History")
+    st.dataframe(df)
+
+
        
                   
             
