@@ -1462,42 +1462,70 @@ with tab9:
 
 
         medicines_df = load_medicines()
+        medicines_df[['name','batch']] = medicines_df[['name','batch']].astype(str).apply(lambda s: s.str.strip())
+        medicines_df['qty'] = pd.to_numeric(medicines_df['qty'], errors='coerce').fillna(0)
 
+        stock_errors = []
         for r in st.session_state.direct_bill_items:
-            med_name = str(r["item"]).strip().upper()
-            batch = str(r["batch"]).strip().upper()
-            qty_sold = float(r["qty"])
+            med_name = str(r.get("item", "")).strip()
+            batch = str(r.get("batch", "")).strip()
+            try:
+                qty_sold = float(r.get("qty", 0))
+            except Exception:
+                qty_sold = 0.0
 
-            # find medicine (exact or partial match)
-            temp = medicines_df[
-                medicines_df["batch"].astype(str).str.strip().str.upper() == batch
-            ]
-
-            match = temp[
-                temp["name"].astype(str).str.strip().str.upper() == med_name
-            ]
-
-            # fallback partial match
-            if match.empty:
-                match = temp[
-                    temp["name"].astype(str).str.strip().str.upper().str.contains(med_name)
-                ]
-
-            if match.empty:
-                st.error(f"❌ No match for: {med_name} | Batch: {batch}")
+            if med_name in ("", "-- Select --") or batch in ("", "-- Select --"):
+                stock_errors.append(f"Invalid selection for item '{med_name}' / batch '{batch}' — skipping stock update.")
                 continue
 
-            idx = match.index[0]
+            # Try exact match on batch + name first (case-insensitive)
+            matches = medicines_df[
+                (medicines_df["batch"].str.upper() == batch.upper()) &
+                (medicines_df["name"].str.upper() == med_name.upper())
+            ]
 
+            # fallback: same batch, partial name contains
+            if matches.empty:
+                matches = medicines_df[
+                    (medicines_df["batch"].str.upper() == batch.upper()) &
+                    (medicines_df["name"].str.upper().str.contains(med_name.upper(), na=False))
+                ]
+
+            # fallback: match by name only (best effort)
+            if matches.empty:
+                matches = medicines_df[
+                    (medicines_df["name"].str.upper() == med_name.upper())
+                ]
+
+            if matches.empty:
+                stock_errors.append(f"No stock match for: {med_name} | Batch: {batch}")
+                continue
+
+            # prefer the first match (you can adjust logic if you want)
+            idx = matches.index[0]
             old_qty = float(medicines_df.at[idx, "qty"])
-            new_qty = max(old_qty - qty_sold, 0)
+            if qty_sold > old_qty:
+                # warn but reduce to zero (or choose to prevent saving)
+                stock_errors.append(f"Insufficient stock for {med_name} | batch {batch}. Available {old_qty}, sold {qty_sold}. Setting to 0.")
+                new_qty = 0.0
+            else:
+                new_qty = old_qty - qty_sold
 
             medicines_df.at[idx, "qty"] = new_qty
 
         save_medicines(medicines_df)
-        st.success("Stock updated successfully!")
-if "daily_earnings_df" not in st.session_state:
-    st.session_state.daily_earnings_df = load_daily_earnings()
+
+        # result messages
+        if stock_errors:
+            for e in stock_errors:
+                st.warning(e)
+            st.success(f"Bill saved (ID {new_bill['bill_id']}). Ledger updated. Stock updated with warnings.")
+        else:
+            st.success(f"Bill saved (ID {new_bill['bill_id']}). Ledger and stock updated successfully.")
+
+        # clear the bill items so user has fresh form (optional)
+        st.session_state.direct_bill_items = []if "daily_earnings_df" not in st.session_state:
+st.session_state.daily_earnings_df = load_daily_earnings()
 with tab10:
     st.title("Retailer Purchase Rate (PTR) Calculator")
     st.caption("Adjust percentages to match your system")
