@@ -1643,7 +1643,7 @@ with tab15:
             "expenses": todays_expenses,
             "balance": new_balance
         }
-        df = df.concat(new_row, ignore_index=True)
+        df = pd.concat(new_row, ignore_index=True)
         save_payments(df)
     st.subheader("📘 Full Payment History")
     st.dataframe(df)
