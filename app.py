@@ -438,48 +438,6 @@ def daybook_to_pdf_bytes(db_df, title="Day Book"):
     pdf.set_font("Arial","B",12)
     pdf.cell(0,8, f"Total amount (all entries): Rs {total:.2f}", ln=True, align="R")
     return pdf.output(dest="S").encode("latin-1")
-def reduce_stock(med_df, items_list):
-    """
-    items_list = list of dicts like:
-    {
-        "item": name,
-        "batch": batch_no or "",
-        "qty": quantity_to_reduce
-    }
-    """
-
-    stock_errors = []
-
-    for it in items_list:
-        item = str(it.get("item", it.get("name", ""))).strip()
-        batch = str(it.get("batch", "")).strip()
-        qty = float(it.get("qty", 0))
-
-        # match name + batch
-        if batch:
-            match = med_df[(med_df["name"] == item) & (med_df["batch"] == batch)]
-            if match.empty:
-                match = med_df[med_df["batch"] == batch]
-        else:
-            match = med_df[med_df["name"] == item]
-
-        if match.empty:
-            stock_errors.append(f"No stock found for {item} ({batch})")
-            continue
-
-        idx = match.index[0]
-        available = float(med_df.at[idx, "qty"])
-
-        if available < qty:
-            stock_errors.append(
-                f"Not enough stock for {item} ({batch}). Available {available}, requested {qty}"
-            )
-            qty = available  # reduce to zero
-
-        med_df.at[idx, "qty"] = available - qty
-
-    return med_df, stock_errors
-
 
 # ---------------- Init ----------------
 init_files()
@@ -500,48 +458,6 @@ if 'direct_bill_items' not in st.session_state:
 
 tab1,tab2,tab3,tab4,tab5,tab6,tab7,tab8,tab9,tab10,tab11,tab12,tab13,tab14,tab15 = st.tabs(["Challans", "Medicines (Inventory)", "Reports / Utilities", "Day Book",
      "Dashboard", "Advertisement", "Ledger", "Recurring Payment", "Billing","Calculator","Daily Earnings","Special Discount","Edit Party / view & Update balance","Sales Book","Daily Payments"])
-def reduce_stock(med_df, items_list):
-    """
-    items_list = list of dicts like:
-    {
-        "item": name,
-        "batch": batch_no or "",
-        "qty": quantity_to_reduce
-    }
-    """
-
-    stock_errors = []
-
-    for it in items_list:
-        item = str(it.get("item", it.get("name", ""))).strip()
-        batch = str(it.get("batch", "")).strip()
-        qty = float(it.get("qty", 0))
-
-        # match name + batch
-        if batch:
-            match = med_df[(med_df["name"] == item) & (med_df["batch"] == batch)]
-            if match.empty:
-                match = med_df[med_df["batch"] == batch]
-        else:
-            match = med_df[med_df["name"] == item]
-
-        if match.empty:
-            stock_errors.append(f"No stock found for {item} ({batch})")
-            continue
-
-        idx = match.index[0]
-        available = float(med_df.at[idx, "qty"])
-
-        if available < qty:
-            stock_errors.append(
-                f"Not enough stock for {item} ({batch}). Available {available}, requested {qty}"
-            )
-            qty = available  # reduce to zero
-
-        med_df.at[idx, "qty"] = available - qty
-
-    return med_df, stock_errors
-
 
 # Tab order: Challans | Medicines | Reports | Day Book (user chose B)
 
@@ -1546,18 +1462,50 @@ with tab9:
 
 
         # --- Update stock for each billed item ---
-        items_list = st.session_state.direct_bill_items
         med_df = load_medicines()
+        med_df['name'] = med_df['name'].astype(str).str.strip().str.upper()
+        med_df['qty'] = pd.to_numeric(med_df['qty'], errors='coerce').fillna(0)
 
-        med_df, errors = reduce_stock(med_df, items_list)
-        st.write(st.session_state.direct_bill_items)
-        if errors:
-            for e in errors:
-                st.storage(e)
-            st.stop()
-        st.success(f"Bill saved successfully and stock reduced")
+        stock_errors = []
+        for r in st.session_state.direct_bill_items:
+            med_name = str(r.get("name", "")).strip()
+            try:
+                qty_sold = float(r.get("qty", 0))
+            except Exception:
+                qty_sold = 0.0
+
+            if med_name == "":
+                stock_errors.append(f"Invalid selection for item '{med_name}' / batch '{batch}' — skipping stock update.")
+                continue
+
+            # Try exact match on batch + name first (case-insensitive)
+            match = med_df[med_df["name"] == med_name]
+
+            # fallback: same batch, partial name contains
+            if match.empty:
+                stock_errors.append(f"❌ No stock found for: {med_name}")
+                continue
+
+            # prefer the first match (you can adjust logic if you want)
+            idx = match.index[0]
+            old_qty = float(med_df.at[idx, "qty"])
+            if qty_sold > old_qty:
+                # warn but reduce to zero (or choose to prevent saving)
+                stock_errors.append(f"Insufficient stock for {med_name} | batch {batch}. Available {old_qty}, sold {qty_sold}. Setting to 0.")
+                new_qty = 0.0
+            else:
+                med_df.at[idx, "qty"] = old_qty - qty_sold
+
+
         save_medicines(med_df)
-        
+
+        # result messages
+        if stock_errors:
+            for e in stock_errors:
+                st.warning(e)
+            st.success(f"Bill saved (ID {new_bill['bill_id']}). Ledger updated. Stock updated with warnings.")
+        else:
+            st.success(f"Bill saved (ID {new_bill['bill_id']}). Ledger and stock updated successfully.")
 
 if "daily_earnings_df" not in st.session_state:
     st.session_state.daily_earnings_df = load_daily_earnings()
