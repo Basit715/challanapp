@@ -1497,7 +1497,7 @@ with tab9:
                 med_df.at[idx, "qty"] = old_qty - qty_sold
 
 
-        save_medicines(medicines_df)
+        save_medicines(med_df)
 
         # result messages
         if stock_errors:
