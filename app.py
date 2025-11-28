@@ -1554,6 +1554,7 @@ with tab9:
             for e in errors:
                 st.storage(e)
             st.stop()
+        st.success(f"Bill saved successfully and stock reduced")
         save_medicines(med_df)
         
 
