@@ -1550,6 +1550,7 @@ with tab9:
         med_df = load_medicines()
 
         med_df, errors = reduce_stock(med_df, items_list)
+        st.write(st.session_state.direct_bill_items)
         if errors:
             for e in errors:
                 st.storage(e)
