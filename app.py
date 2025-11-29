@@ -613,9 +613,9 @@ with tab1:
                     ]
                     if not match.empty:
                         row = match.iloc[0]
-                        mrp_default = float(row["mrp"])
-                        rate_default = float(row["rate"])
-                        gst_default = float(row["gst"])
+                        mrp_default = float(r.get("mrp", r.get("MRP", 0)) or 0)
+                        rate_default = float(r.get("rate", r.get("RATE", 0)) or 0)
+                        gst_default = float(r.get("gst", r.get("GST", DEFAULT_GST)) or DEFAULT_GST)
                         
                 mrp = st.number_input(f"MRP {i+1}", min_value=0.0, value=float(mrp_default),key=f"mrp_{challan_no}_{i}")
                 rate = st.number_input(f"Rate {i+1}", min_value=0.0, value=float(rate_default), key=f"rate_{challan_no}_{i}")
