@@ -1234,6 +1234,7 @@ with tab9:
             bill_df = load_bills()
 
             if st.button("💾 Save Bill from Challans"):
+                total_amount
 
                 selected_party = party_sel.strip()     # FIXED
                 bill_total = total_amount      # FIXED
