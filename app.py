@@ -1271,7 +1271,7 @@ with tab9:
                     last_idx = party_rows.index[0]
 
                     # Read last balance safely
-                    last_balance = float(ledger_df.at[last_idx, "balance"],0.0)
+                    last_balance = float(ledger_df.at[last_idx, "balance"] or 0.0)
 
                     try:
                         last_balance = float(last_balance)
