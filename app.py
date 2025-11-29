@@ -601,24 +601,60 @@ with tab1:
 
 
                 # autofill rate & gst from selected batch if available
-                rate_default = 0.0
-                gst_default = DEFAULT_GST
-                mrp_default = 0.0
+                
+
+                # Create session keys for this row
+                mrp_key = f"mrp_{challan_no}_{i}"
+                rate_key = f"rate_{challan_no}_{i}"
+                gst_key = f"gst_{challan_no}_{i}"
+
+                # Initialize keys if not exist
+                if mrp_key not in st.session_state:
+                    st.session_state[mrp_key] = 0.0
+                if rate_key not in st.session_state:
+                    st.session_state[rate_key] = 0.0
+                if gst_key not in st.session_state:
+                    st.session_state[gst_key] = DEFAULT_GST
+
+                # Find matching batch row
                 if selected_med != "-- type or pick --" and selected_batch != "-- select batch --":
                     match = med_df[
-                    (med_df["name"] == selected_med) &
-                    (med_df["batch"].astype(str) == str(selected_batch))
+                        (med_df["name"].astype(str).str.strip().str.upper() == selected_med.strip().upper()) &
+                        (med_df["batch"].astype(str).str.strip().str.upper() == selected_batch.strip().upper())
                     ]
                     if not match.empty:
-                        r = match.iloc[0]
-                        mrp_default = float(r.get("mrp", r.get("MRP", 0)) or 0)
-                        rate_default = float(r.get("rate", r.get("RATE", 0)) or 0)
-                        gst_default = float(r.get("gst", r.get("GST", DEFAULT_GST)) or DEFAULT_GST)
-                        
-                mrp = st.number_input(f"MRP {i+1}", min_value=0.0, value=float(mrp_default),key=f"mrp_{challan_no}_{i}")
-                rate = st.number_input(f"Rate {i+1}", min_value=0.0, value=float(rate_default), key=f"rate_{challan_no}_{i}")
-                discount = st.number_input(f"Discount % {i+1}", min_value=0.0, max_value=100.0, value=0.0, key=f"disc_{challan_no}_{i}")
-                gst = st.number_input(f"GST % {i+1}", min_value=0.0, max_value=28.0, value=float(gst_default), key=f"gst_{challan_no}_{i}")
+                        row = match.iloc[0]
+
+                        # UPDATE SESSION VALUES (autofill happens here)
+                        st.session_state[mrp_key] = float(row.get("mrp", row.get("MRP", 0)) or 0)
+                        st.session_state[rate_key] = float(row.get("rate", row.get("RATE", 0)) or 0)
+                        st.session_state[gst_key] = float(row.get("gst", row.get("GST", DEFAULT_GST)) or DEFAULT_GST)
+
+                # Now create widgets USING session_state
+                mrp = st.number_input(
+                    f"MRP {i+1}",
+                    min_value=0.0,
+                    key=mrp_key
+                )
+                rate = st.number_input(
+                    f"Rate {i+1}",
+                    min_value=0.0,
+                    key=rate_key
+                )
+                gst = st.number_input(
+                    f"GST % {i+1}",
+                    min_value=0.0,
+                    max_value=28.0,
+                    key=gst_key
+                )
+                discount = st.number_input(
+                    f"Discount % {i+1}",
+                    min_value=0.0,
+                    max_value=100.0,
+                    value=0.0,
+                    key=f"disc_{challan_no}_{i}"
+                )
+
             amt = compute_row_amount(qty, rate, discount, gst)
             st.write(f"Row total (after discount + GST): **₹ {amt:.2f}**")
             new_items.append({
