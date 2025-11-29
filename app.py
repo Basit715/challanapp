@@ -1297,6 +1297,7 @@ with tab9:
                 # Append into ledger
                 ledger_df = pd.concat([ledger_df, pd.DataFrame([new_entry])], ignore_index=True)
                 save_ledger(ledger_df)
+                st.success("Bill created from selected challans successfully")
 
 
                                 
