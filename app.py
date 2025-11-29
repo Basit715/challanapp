@@ -1234,7 +1234,6 @@ with tab9:
             bill_df = load_bills()
 
             if st.button("💾 Save Bill from Challans"):
-                total_amount
 
                 selected_party = party_sel.strip()     # FIXED
                 bill_total = total_amount      # FIXED
@@ -1271,9 +1270,9 @@ with tab9:
                         last_balance = float(ledger_df.at[last_idx, "balance"])
                     except:
                         last_balance = 0.0
-                    new_balance = last_balance + grand_total
+                    new_balance = last_balance + bill_total
                 else:
-                    new_balance = grand_total
+                    new_balance = bill_total
                     
 
                 # Build new ledger row
@@ -1282,7 +1281,7 @@ with tab9:
                     "party": selected_party.strip(),
                     "date": str(date.today()),
                     "type": "Credit",
-                    "amount": grand_total,
+                    "amount": bill_total,
                     "balance": new_balance,
                     "note": "Bill No GST"
                 }
