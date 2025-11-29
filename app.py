@@ -1268,7 +1268,7 @@ with tab9:
 
                 if not party_rows.empty:
                     # Find last row of this party
-                    last_idx = party_rows.index[-1]
+                    last_idx = party_rows.index[0]
 
                     # Read last balance safely
                     last_balance = float(ledger_df.at[last_idx, "balance"],0.0)
@@ -1291,7 +1291,7 @@ with tab9:
                     "type": "Credit",
                     "amount": grand_total,
                     "balance": new_balance,
-                    "note": "Bill GST"  # or "Bill No GST" depending on screen
+                    "note": "Bill No GST" depending on screen
                 }
 
                 # Append into ledger
