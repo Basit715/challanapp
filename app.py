@@ -598,7 +598,7 @@ with tab1:
                         stock_text = f"Stock: {batch_row.iloc[0]['qty']}"
                 st.markdown(stock_text)
             with c3:
-                selected_med_str = str(selected_med).strip().lower()
+                selected_med_str = str(selected_med).strip()
                 selected_batch_str = str(selected_batch).strip()
 
 
