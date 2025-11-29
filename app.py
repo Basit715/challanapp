@@ -1261,28 +1261,20 @@ with tab9:
                 ledger_df = load_ledger()
 
                 # Clean party column
-                ledger_df['party'] = ledger_df['party'].astype(str).str.strip().str.upper()
-                selected_party = selected_party.strip().upper()
-
-                # Filter ledger rows for party
-                party_rows = ledger_df[ledger_df['party'] == selected_party]
+                ledger_df['party_clean'] = ledger_df['party'].astype(str).str.strip().str.upper()
+                current_party_clean = party.strip().upper()
+                party_rows = ledger_df[ledger_df['party_clean'] == current_party_clean]
 
                 if not party_rows.empty:
-                    # Find last row of this party
-                    last_idx = party_rows.index[0]
-
-                    # Read last balance safely
-                    last_balance = float(ledger_df.at[last_idx, "balance"] or 0.0)
-
+                    last_idx = party_rows.index[-1]
                     try:
-                        last_balance = float(last_balance)
+                        last_balance = float(ledger_df.at[last_idx, "balance"])
                     except:
-                        last_balance = 0.0  # Handle blank / NaN / wrong types
-
-                    new_balance = last_balance + grand_total
+                        last_balance = 0.0
+                    new_balance = last_balance + gradd_total
                 else:
-                    # First transaction for this party
                     new_balance = grand_total
+                    
 
                 # Build new ledger row
                 new_entry = {
