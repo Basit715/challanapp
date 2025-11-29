@@ -1259,23 +1259,36 @@ with tab9:
                 # --- Update Ledger Cumulative Balance ---
                 ledger_df = load_ledger()
 
-                # Clean party column
-                ledger_df['party_clean'] = ledger_df['party'].astype(str).str.strip().str.upper().replace(r"\s+"," ",regex = True)
-                current_party_clean = party.strip().upper().replace(" "," ")
+                ledger_df['party_clean'] = (
+                    ledger_df['party']
+                    .astype(str)
+                    .str.strip()
+                    .str.upper()
+                    .replace(r"\s+", " ", regex=True)
+                )
+                
+                current_party_clean = selected_party.strip().upper().replace(" ", " ")
                 party_rows = ledger_df[ledger_df['party_clean'] == current_party_clean]
-
+                
                 if not party_rows.empty:
+                    # ---- UPDATE EXISTING PARTY LAST ROW ----
                     last_idx = party_rows.index[-1]
+                
                     try:
                         last_balance = float(ledger_df.at[last_idx, "balance"])
                     except:
                         last_balance = 0.0
+                
                     new_balance = last_balance + bill_total
+                
+                    # update only balance + note + amount
+                    ledger_df.at[last_idx, "amount"] = bill_total
+                    ledger_df.at[last_idx, "balance"] = new_balance
+                    ledger_df.at[last_idx, "note"] = "Bill No GST (Updated from Challan)"
+                
                 else:
+                    # ---- NO PARTY EXISTS → CREATE NEW ENTRY ----
                     new_balance = bill_total
-                    
-
-                    # Build new ledger row
                     new_entry = {
                         "entry_id": len(ledger_df) + 1,
                         "party": selected_party.strip(),
@@ -1285,10 +1298,9 @@ with tab9:
                         "balance": new_balance,
                         "note": "Bill No GST"
                     }
-
-                    # Append into ledger
                     ledger_df = pd.concat([ledger_df, pd.DataFrame([new_entry])], ignore_index=True)
-                    save_ledger(ledger_df)
+                
+                save_ledger(ledger_df)
                 st.success("Bill created from selected challans successfully")
 
 
