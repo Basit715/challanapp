@@ -1261,8 +1261,8 @@ with tab9:
                 ledger_df = load_ledger()
 
                 # Clean party column
-                ledger_df['party_clean'] = ledger_df['party'].astype(str).str.strip().str.upper()
-                current_party_clean = party.strip().upper()
+                ledger_df['party_clean'] = ledger_df['party'].astype(str).str.strip().str.upper().replace(r"\s+"," ",regex = True)
+                current_party_clean = party.strip().upper().replace(" "," ")
                 party_rows = ledger_df[ledger_df['party_clean'] == current_party_clean]
 
                 if not party_rows.empty:
@@ -1279,7 +1279,7 @@ with tab9:
                 # Build new ledger row
                 new_entry = {
                     "entry_id": len(ledger_df) + 1,
-                    "party": selected_party,
+                    "party": selected_party.strip(),
                     "date": str(date.today()),
                     "type": "Credit",
                     "amount": grand_total,
