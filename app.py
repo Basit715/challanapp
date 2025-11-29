@@ -669,7 +669,7 @@ with tab1:
                 "discount": discount,
                 "gst": gst,
                 "amount": amt,
-                "grand_total": 0.0
+                "grand_total": 0.0,
                 "billed":False
             })
         grand_total = round(sum(x["amount"] for x in new_items), 2)
