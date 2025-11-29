@@ -1275,20 +1275,20 @@ with tab9:
                     new_balance = bill_total
                     
 
-                # Build new ledger row
-                new_entry = {
-                    "entry_id": len(ledger_df) + 1,
-                    "party": selected_party.strip(),
-                    "date": str(date.today()),
-                    "type": "Credit",
-                    "amount": bill_total,
-                    "balance": new_balance,
-                    "note": "Bill No GST"
-                }
+                    # Build new ledger row
+                    new_entry = {
+                        "entry_id": len(ledger_df) + 1,
+                        "party": selected_party.strip(),
+                        "date": str(date.today()),
+                        "type": "Credit",
+                        "amount": bill_total,
+                        "balance": new_balance,
+                        "note": "Bill No GST"
+                    }
 
-                # Append into ledger
-                ledger_df = pd.concat([ledger_df, pd.DataFrame([new_entry])], ignore_index=True)
-                save_ledger(ledger_df)
+                    # Append into ledger
+                    ledger_df = pd.concat([ledger_df, pd.DataFrame([new_entry])], ignore_index=True)
+                    save_ledger(ledger_df)
                 st.success("Bill created from selected challans successfully")
 
 
