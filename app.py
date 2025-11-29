@@ -1271,7 +1271,7 @@ with tab9:
                         last_balance = float(ledger_df.at[last_idx, "balance"])
                     except:
                         last_balance = 0.0
-                    new_balance = last_balance + gradd_total
+                    new_balance = last_balance + grand_total
                 else:
                     new_balance = grand_total
                     
