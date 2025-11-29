@@ -1254,7 +1254,7 @@ with tab9:
                     "note": f"Billed from {len(challan_selected)} challans"
                 }
                 challans_df = load_challans()
-                challans_df.loc[challans_df['challan_no'] == challan_selected,'billed] = True
+                challans_df.loc[challans_df['challan_no'] == challan_selected,'billed'] = True
                 save_challans(challans_df)
 
                 bills_df = load_bills()
