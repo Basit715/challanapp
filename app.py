@@ -670,9 +670,12 @@ with tab1:
                 "gst": gst,
                 "amount": amt,
                 "grand_total": 0.0
+                "billed":False
             })
         grand_total = round(sum(x["amount"] for x in new_items), 2)
         st.subheader(f"Grand Total: ₹ {grand_total:.2f}")
+        if 'billed' not in challans_df:
+            challans_df['billed'] = False 
         if st.button("Save Challan and reduce stock", key=f"save_ch_{challan_no}"):
             if not party:
                 st.error("Enter party name.")
@@ -1250,6 +1253,9 @@ with tab9:
                     "bill_amount": bill_total,
                     "note": f"Billed from {len(challan_selected)} challans"
                 }
+                challans_df = load_challans()
+                challans_df.loc[challans_df['challan_no'] == challan_selected,'billed] = True
+                save_challans(challans_df)
 
                 bills_df = load_bills()
                 bills_df = pd.concat([bills_df, pd.DataFrame([new_bill_entry])], ignore_index=True)
