@@ -1291,7 +1291,7 @@ with tab9:
                     "type": "Credit",
                     "amount": grand_total,
                     "balance": new_balance,
-                    "note": "Bill No GST" depending on screen
+                    "note": "Bill No GST"
                 }
 
                 # Append into ledger
