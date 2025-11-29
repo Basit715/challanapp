@@ -456,8 +456,8 @@ if "daily_earnings" not in st.session_state:
 if 'direct_bill_items' not in st.session_state:
     st.session_state.direct_bill_items = []
 
-tab1,tab2,tab3,tab4,tab5,tab6,tab7,tab8,tab9,tab10,tab11,tab12,tab13,tab14,tab15 = st.tabs(["Challans", "Medicines (Inventory)", "Reports / Utilities", "Day Book",
-     "Dashboard", "Advertisement", "Ledger", "Recurring Payment", "Billing","Calculator","Daily Earnings","Special Discount","Edit Party / view & Update balance","Sales Book","Daily Payments"])
+tab1,tab2,tab3,tab4,tab5,tab6,tab7,tab8,tab9,tab10,tab11,tab12,tab13,tab14,tab15,tab16 = st.tabs(["Challans", "Medicines (Inventory)", "Reports / Utilities", "Day Book",
+     "Dashboard", "Advertisement", "Ledger", "Recurring Payment", "Billing","Calculator","Daily Earnings","Special Discount","Edit Party / view & Update balance","Sales Book","Daily Payments","Challan Status"])
 
 # Tab order: Challans | Medicines | Reports | Day Book (user chose B)
 
@@ -1725,6 +1725,48 @@ with tab15:
             st.success("Entry deleted successfully!")
     else:
         st.info("No entries available to delete.")
+with tab16:
+    st.title("📋 Challan Status Dashboard")
+    challans_df = load_challans()
+
+    if 'billed' not in challans_df.columns:
+        challans_df['billed'] = False
+
+    challans_df['billed'] = challans_df['billed'].fillna(False)
+
+    search = st.text_input("Search challan no / party")
+
+    if search:
+        challans_df = challans_df[
+            challans_df['challan_no'].astype(str).str.contains(search, case=False) |
+            challans_df['party'].astype(str).str.contains(search, case=False)
+        ]
+
+    col1, col2 = st.columns(2)
+    with col1:
+        start_date = st.date_input("Start date", value=None)
+    with col2:
+        end_date = st.date_input("End date", value=None)
+
+    if start_date:
+        challans_df = challans_df[challans_df['date'] >= str(start_date)]
+    if end_date:
+        challans_df = challans_df[challans_df['date'] <= str(end_date)]
+
+    challans_df["Status"] = challans_df["billed"].apply(
+        lambda x: "🟢 BILLED" if x else "🔴 PENDING"
+    )
+
+    st.subheader("Summary")
+    colA, colB = st.columns(2)
+    colA.metric("Pending Challans", challans_df[challans_df['billed']==False].shape[0])
+    colB.metric("Billed Challans", challans_df[challans_df['billed']==True].shape[0])
+
+    st.subheader("🔴 Pending Challans")
+    st.dataframe(challans_df[challans_df["billed"] == False][["challan_no", "date", "party", "amount", "Status"]])
+
+    st.subheader("🟢 Billed Challans")
+    st.dataframe(challans_df[challans_df["billed"] == True][["challan_no", "date", "party", "amount", "Status"]])
 
 
        
