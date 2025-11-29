@@ -598,20 +598,23 @@ with tab1:
                         stock_text = f"Stock: {batch_row.iloc[0]['qty']}"
                 st.markdown(stock_text)
             with c3:
-                selected_med_str = str(selected_med).strip()
-                selected_batch_str = str(selected_batch).strip()
 
 
                 # autofill rate & gst from selected batch if available
                 rate_default = 0.0
                 gst_default = DEFAULT_GST
                 mrp_default = 0.0
-                if selected_med_str and selected_batch and selected_batch_str != "-- select batch --":
-                    br = med_df[(med_df["name"]==selected_med_str) & (med_df["batch"]==selected_batch_str)]
-                    if not br.empty:
-                        rate_default = float(br.iloc[0]["rate"] or 0.0)
-                        gst_default = float(br.iloc[0]["gst"] or DEFAULT_GST)
-                        mrp_default = float(br.iloc[0]["mrp"] or 0.0)
+                if selected_med != "-- type or pick --" and selected_batch != "-- select batch --":
+                    match = med_df[
+                    (med_df["name"] == selected_med) &
+                    (med_df["batch"].astype(str) == str(selected_batch))
+                    ]
+                    if not match.empty:
+                        row = match.iloc[0]
+                        mrp_default = float(row["mrp"])
+                        rate_default = float(row["rate"])
+                        gst_default = float(row["gst"])
+                        
                 mrp = st.number_input(f"MRP {i+1}", min_value=0.0, value=float(mrp_default),key=f"mrp_{challan_no}_{i}")
                 rate = st.number_input(f"Rate {i+1}", min_value=0.0, value=float(rate_default), key=f"rate_{challan_no}_{i}")
                 discount = st.number_input(f"Discount % {i+1}", min_value=0.0, max_value=100.0, value=0.0, key=f"disc_{challan_no}_{i}")
