@@ -1260,8 +1260,8 @@ with tab9:
                 ledger_df = load_ledger()
 
                 # Clean party column
-                ledger_df['party'] = ledger_df['party'].astype(str).str.strip()
-                selected_party = selected_party.strip()
+                ledger_df['party'] = ledger_df['party'].astype(str).str.strip().str.upper()
+                selected_party = selected_party.strip().upper()
 
                 # Filter ledger rows for party
                 party_rows = ledger_df[ledger_df['party'] == selected_party]
@@ -1271,7 +1271,7 @@ with tab9:
                     last_idx = party_rows.index[-1]
 
                     # Read last balance safely
-                    last_balance = ledger_df.at[last_idx, "balance"]
+                    last_balance = float(ledger_df.at[last_idx, "balance"],0.0)
 
                     try:
                         last_balance = float(last_balance)
