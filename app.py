@@ -587,8 +587,6 @@ with tab1:
                 if selected_med and selected_med != "-- type or pick --":
                     batch_opts = med_df[med_df["name"]==selected_med]["batch"].astype(str).tolist()
                 selected_batch = st.selectbox(f"Batch {i+1}", options=["-- select batch --"] + batch_opts, key=f"sel_batch_{challan_no}_{i}")
-                st.write("DEBUG → Matches in medicines_df:",
-         med_df[(med_df["name"] == selected_med)])
                 item_name = st.text_input(f"Item name (or override)", value=selected_med if selected_med and selected_med != "-- type or pick --" else "", key=f"item_name_{challan_no}_{i}")
             with c2:
                 qty = st.number_input(f"Qty {i+1}", min_value=0.0, value=1.0, step=1.0, key=f"qty_{challan_no}_{i}")
@@ -612,7 +610,7 @@ with tab1:
                     (med_df["batch"].astype(str) == str(selected_batch))
                     ]
                     if not match.empty:
-                        row = match.iloc[0]
+                        r = match.iloc[0]
                         mrp_default = float(r.get("mrp", r.get("MRP", 0)) or 0)
                         rate_default = float(r.get("rate", r.get("RATE", 0)) or 0)
                         gst_default = float(r.get("gst", r.get("GST", DEFAULT_GST)) or DEFAULT_GST)
