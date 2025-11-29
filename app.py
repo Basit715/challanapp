@@ -629,6 +629,7 @@ with tab1:
                 "batch": selected_batch if selected_batch and selected_batch!="-- select batch --" else "",
                 "qty": qty,
                 "rate": rate,
+                "mrp":mrp,
                 "discount": discount,
                 "gst": gst,
                 "amount": amt,
