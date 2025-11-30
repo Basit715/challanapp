@@ -100,54 +100,119 @@ APP_TITLE = "💊 NEW PharmaWAYS — WE SELL QUALITY MEDICINES"
 
 # ---------------- Dark theme CSS (modern) ----------------
 st.set_page_config(page_title="Pharma Challan Manager", layout="wide", initial_sidebar_state="auto")
+st.set_page_config(page_title="Pharma Challan Manager", layout="wide", initial_sidebar_state="auto")
+
+# Modern UI – Clean, Neon + Dark Style
 st.markdown("""
 <style>
-/* Button pressed (active) animation */
-.stButton>button:active, .stDownloadButton>button:active {
-    transform: scale(0.95);
-    background: linear-gradient(90deg, #1e90ff, #5ab2ff) !important;
-    box-shadow: 0 2px 6px rgba(46,166,255,0.20) inset;
-}
-</style>
-""", unsafe_allow_html=True)
-st.markdown("""
-<style>
+
 :root{
-  --bg: #08090b;
-  --panel: #0b1220;
+  --bg: #0a0b10;
+  --panel: #101522;
   --muted: #9fb7d8;
   --accent: #2ea6ff;
-  --card: #071026;
-  --glass: rgba(255,255,255,0.03);
+  --accent2: #5ab2ff;
+  --card: #0e1628;
+  --glass: rgba(255,255,255,0.05);
 }
-body { background: var(--bg); color: #e6eef6; }
+
+/* Remove default header/footer */
 .stApp > header, .stApp > footer { display: none; }
-section.main { padding-top: 10px; }
-.css-1lcbmhc { background-color: var(--panel); } /* page main bg */
-[data-testid="stToolbar"] { display: none; }
+
+/* Background */
+body { background: var(--bg); color: #e6eef6; }
+
+/* Main container panel */
+.css-1lcbmhc, .stApp { background: var(--bg); }
+
+/* Buttons */
 .stButton>button, .stDownloadButton>button {
-  background: linear-gradient(90deg,var(--accent),#6fb8ff) !important;
-  color: white !important;
-  border: none !important;
-  height: 38px;
-  box-shadow: 0 4px 10px rgba(46,166,255,0.12);
+    background: linear-gradient(90deg,var(--accent),var(--accent2)) !important;
+    color: white !important;
+    border: none !important;
+    border-radius: 8px !important;
+    padding: 0.6rem 1rem !important;
+    font-weight: 600 !important;
+    transition: all 0.2s ease !important;
+    box-shadow: 0 4px 12px rgba(46,166,255,0.20);
 }
-.stTextInput>div>div>input, .stNumberInput>div>div>input, textarea, select {
-  background: var(--glass) !important;
-  color: #000000 !important;  /* black text inside white-ish boxes */
-  border: 1px solid rgba(255,255,255,0.04) !important;
+
+.stButton>button:hover, .stDownloadButton>button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 18px rgba(46,166,255,0.25);
 }
-.stDataFrame, .element-container { background: transparent !important; }
-.css-1d391kg{ background-color: transparent; }
+
+.stButton>button:active, .stDownloadButton>button:active {
+    transform: scale(0.96);
+}
+
+/* Inputs */
+.stTextInput>div>div>input,
+.stNumberInput>div>div>input,
+textarea, select {
+    background: var(--glass) !important;
+    color: white !important;
+    border-radius: 8px !important;
+    border: 1px solid rgba(255,255,255,0.10) !important;
+    padding: 10px !important;
+}
+
+/* Labels */
+.stMarkdown, label, .stText, .stNumberInput label {
+    color: #dbe8ff !important;
+    font-weight: 500 !important;
+}
+
+/* Cards */
 .card {
-  background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
-  border-radius: 12px;
-  padding: 14px;
-  box-shadow: 0 6px 20px rgba(0,0,0,0.6);
-  border: 1px solid rgba(255,255,255,0.03);
+    background: var(--card);
+    border-radius: 16px;
+    padding: 20px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.60);
+    border: 1px solid rgba(255,255,255,0.05);
 }
-.small-muted { color: var(--muted); font-size: 12px; }
-.h1 { font-size: 20px; font-weight:700; }
+
+/* Section headings */
+.h1 {
+    font-size: 22px;
+    font-weight: 700;
+    margin-bottom: 10px;
+}
+
+.small-muted { 
+    color: var(--muted);
+    font-size: 13px;
+}
+
+/* DataFrame/Table */
+[data-testid="stDataFrame"] table {
+    background: var(--panel) !important;
+    border-radius: 10px !important;
+}
+
+[data-testid="stDataFrame"] tbody tr td {
+    color: #dce6f5 !important;
+}
+
+/* Scrollbars */
+::-webkit-scrollbar {
+    width: 8px;
+}
+::-webkit-scrollbar-thumb {
+    background: #182233;
+    border-radius: 8px;
+}
+::-webkit-scrollbar-track {
+    background: #0d1018;
+}
+
+/* Make layout tighter on phone */
+@media (max-width: 768px) {
+    .block-container {
+        padding: 1rem 0.5rem !important;
+    }
+}
+
 </style>
 """, unsafe_allow_html=True)
 
