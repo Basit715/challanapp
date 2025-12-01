@@ -1144,22 +1144,51 @@ elif st.session_state.current_tab == "🧾 Ledger":
     payment_party = st.selectbox("Select Party", options=parties, key="pay_party")
     payment_amount = st.number_input("Payment Amount", min_value=0.0)
     payment_note = st.text_input("Note / Reference", key="pay_note")
-
+    
     if st.button("Add Payment", key="btn_add_payment"):
-        last_balance = float(ledger_df[ledger_df['party'] == payment_party]['balance'].iloc[-1])
-        new_balance = last_balance - payment_amount
+    
+        # --- Clean both sides for matching ---
+        ledger_df["party_clean"] = (
+            ledger_df["party"]
+            .astype(str)
+            .str.strip()
+            .str.upper()
+            .replace(r"\s+", " ", regex=True)
+        )
+    
+        pay_clean = payment_party.strip().upper()
+    
+        # ---- Find existing party row ----
+        match_idx = ledger_df.index[ledger_df["party_clean"] == pay_clean].tolist()
+    
+        if match_idx:  
+            # ---- Party exists → UPDATE last row balance ----
+            idx = match_idx[-1]   # the latest row for that party
+    
+            last_balance = ledger_df.at[idx, "balance"]
+            new_balance = last_balance - payment_amount
+    
+            ledger_df.at[idx, "balance"] = new_balance  # <-- only update, not append
+    
+            st.success("Payment added and balance updated!")
+
+    else:
+        # ---- Party does NOT exist → Add NEW row ----
         new_entry = {
-            "entry_id": len(ledger_df)+1,
+            "entry_id": len(ledger_df) + 1,
             "party": payment_party,
             "date": date.today().strftime("%Y-%m-%d"),
             "type": "payment",
             "amount": payment_amount,
-            "balance": new_balance,
+            "balance": -payment_amount,
             "note": payment_note
         }
+
         ledger_df = pd.concat([ledger_df, pd.DataFrame([new_entry])], ignore_index=True)
-        save_ledger(ledger_df)
-        st.success("Payment added!")
+        st.success("Payment added for new party!")
+
+    save_ledger(ledger_df)
+
 elif st.session_state.current_tab == "💳 Recurring Payment":
     party_sel = st.selectbox("Select Party", options=parties, key="party_sel_recurring")
     schedule_type = st.radio("Schedule type", options=["weekly","monthly"])
