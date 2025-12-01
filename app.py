@@ -280,7 +280,7 @@ def save_payment_history(df):
 payment_history_df = load_payment_history()
 if payment_history_df.empty:
     starting_entries = pd.DataFrame([
-        {1,"Basit","01-12-2025","payments",1000,"cash","Basit"}
+        {"id":1,"party":"Basit","date":"01-12-2025","type":"payments","amount":1000,"note":"cash","party_clean":"Basit"}
     ])
     payment_history_df = pd.concat([payment_history_df,starting_entries],ignore_index = True)
     save_payment_history(payment_history_df)
