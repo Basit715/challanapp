@@ -1192,7 +1192,7 @@ elif st.session_state.current_tab == "🧾 Ledger":
         else:
             # ---- Add party FIRST TIME ----
             new_entry = {
-                "entry_id": len(ledger_df)+1,
+                "enrty_id": len(ledger_df)+1,
                 "party": payment_party,
                 "date": date.today().strftime("%Y-%m-%d"),
                 "type": "payment",
@@ -1209,7 +1209,7 @@ elif st.session_state.current_tab == "🧾 Ledger":
         new_payment_id = len(payment_history_df) + 1 if not payment_history_df.empty else 1
 
         payment_record = {
-            "payment_id": new_payment_id,
+            "id": new_payment_id,
             "party": payment_party,
             "date": date.today().strftime("%Y-%m-%d"),
             "type": "Payment",
