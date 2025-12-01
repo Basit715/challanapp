@@ -1686,9 +1686,9 @@ elif st.session_state.current_tab == "🧮 Calculator":
 elif st.session_state.current_tab == "💰 Daily Earnings":
     st.title("Daily Earnings Tracker")
     daily_earnings_df = st.session_state.daily_earnings_df
+    df_daily = st.session_state.daily_earnings_df
     if not daily_earnings_df.empty:
         st.subheader("Daily Earnings Summary")
-        df_daily = daily_earnings_df.copy()
         df_daily['DATE'] = pd.to_datetime(df_daily['DATE'])
         summary_table = df_daily.groupby('DATE',as_index = False)['EARNING'].sum()
         summary_table['DATE'] = summary_table['DATE'].dt.strftime('%Y-%m-%d')
