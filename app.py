@@ -432,18 +432,34 @@ if "daily_earnings_df" not in st.session_state:
 st.markdown("""
 <style>
 :root{
-  --bg: #0a0b10;
+  --bg: #0a0b1000;  /* transparent so wallpaper shows */
   --panel: #101522;
   --muted: #9fb7d8;
   --accent: #2ea6ff;
   --accent2: #5ab2ff;
-  --card: #0e1628;
+  --card: #0e1628cc; /* slight transparency so card looks good */
   --glass: rgba(255,255,255,0.05);
 }
-.stApp > header, .stApp > footer { display: none; }
-body { background: var(--bg); color: #e6eef6; }
-.css-1lcbmhc, .stApp { background: var(--bg); }
 
+/* 🔥 FULL APP BACKGROUND IMAGE */
+[data-testid="stAppViewContainer"] {
+    background-image: url("background.png");
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+}
+
+.stApp > header, .stApp > footer { display: none; }
+
+body { color: #e6eef6; }
+
+/* main bg transparent so wallpaper stays visible */
+.css-1lcbmhc, .stApp {
+    background: transparent !important;
+}
+
+/* 🔥 Cards */
 .card {
     background: var(--card);
     border-radius: 16px;
@@ -455,14 +471,17 @@ body { background: var(--bg); color: #e6eef6; }
     transition: all 0.2s ease;
     margin-bottom: 20px;
 }
+
 .card:hover {
     transform: translateY(-5px);
     box-shadow: 0 12px 28px rgba(46,166,255,0.4);
 }
+
 .card h3 {
     margin: 10px 0 0 0;
     font-size: 18px;
 }
+
 .card p {
     margin: 5px 0 0 0;
     font-size: 13px;
