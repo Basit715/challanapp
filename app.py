@@ -480,25 +480,20 @@ tabs = [
 ]
 
 # ------------------ Dashboard Grid ------------------
+# ------------------ Dashboard Grid ------------------
 st.markdown("<h1 style='text-align:center;'>Pharma Challan Manager</h1>", unsafe_allow_html=True)
 st.markdown("---")
 
 cols = st.columns(4)
+
+if "current_tab" not in st.session_state:
+    st.session_state.current_tab = "Dashboard"
+
 for i, (title, subtitle) in enumerate(tabs):
     with cols[i % 4]:
-        # Use clickable card via st.markdown and JS
-        if st.markdown(f"""
-            <div class="card" onclick="window.location.href='#{title}'">
-                <h3>{title}</h3>
-                <p>{subtitle}</p>
-            </div>
-        """, unsafe_allow_html=True):
+        if st.button(f"{title}\n{subtitle}", key=f"btn_{title}"):
             st.session_state.current_tab = title
-
-st.markdown("---")
-
-# ------------------ Render Selected Tab ------------------
-st.markdown(f"<h2 style='color:#2ea6ff'>{st.session_state.current_tab}</h2>", unsafe_allow_html=True)
+            st.experimental_rerun()
 
 # Example: render content per tab
 if st.session_state.current_tab == "📋 Challans":
@@ -1231,7 +1226,7 @@ elif st.session_state.current_tab == "💳 Recurring Payment":
                 st.write(f"{party_name} → No balance recorded")
     else:
         st.info("No payments due today")
-elif st.session_state.current_tab == "🧾 Billing":
+elif st.session_state.current_state == "🧾 Billing":
     st.header("💳 Billing System")
 
     billing_type = st.radio(
