@@ -1861,11 +1861,11 @@ elif st.session_state.current_tab == "PAYMENT HISTORY":
     st.subheader("📜 Payment History")
 
 # Load payment history file
-payment_history_df = load_payment_history()
+    payment_history_df = load_payment_history()
 
-if payment_history_df.empty:
+    if payment_history_df.empty:
     st.info("No payment history recorded yet.")
-else:
+   else:
     # --- Filters ---
     col1, col2, col3 = st.columns(3)
 
