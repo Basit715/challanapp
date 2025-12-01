@@ -443,7 +443,7 @@ st.markdown("""
 
 /* 🔥 FULL APP BACKGROUND IMAGE */
 [data-testid="stAppViewContainer"] {
-    background-image: url("background.png");
+    background-image: url("file_00000000ad3072069559266e767c6c53.png");
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
