@@ -1860,8 +1860,63 @@ elif st.session_state.current_tab == "📦 Challan Status":
 elif st.session_state.current_tab == "PAYMENT HISTORY":
     st.subheader("📜 Payment History")
 
-# Load payment history file
+    # Load payment history file
     payment_history_df = load_payment_history()
+
+    if payment_history_df.empty:
+        st.info("No payment history recorded yet.")
+    else:
+        # --- Filters ---
+        col1, col2, col3 = st.columns(3)
+
+        with col1:
+            selected_party = st.selectbox(
+                "Select Party",
+                options=["All Parties"] + sorted(payment_history_df["party"].unique().tolist())
+            )
+
+        with col2:
+            start_date = st.date_input("Start Date", value=None)
+
+        with col3:
+            end_date = st.date_input("End Date", value=None)
+
+        # Apply filters
+        filtered_df = payment_history_df.copy()
+
+        if selected_party != "All Parties":
+            filtered_df = filtered_df[filtered_df["party"] == selected_party]
+
+        if start_date:
+            filtered_df = filtered_df[filtered_df["date"] >= start_date.strftime("%Y-%m-%d")]
+
+        if end_date:
+            filtered_df = filtered_df[filtered_df["date"] <= end_date.strftime("%Y-%m-%d")]
+
+        st.subheader("📄 Payment Records")
+        st.dataframe(filtered_df, use_container_width=True)
+
+        # Download Excel
+        def convert_df_to_excel(df):
+            import io
+            from openpyxl import Workbook
+            output = io.BytesIO()
+            wb = Workbook()
+            ws = wb.active
+            ws.append(df.columns.tolist())
+            for _, row in df.iterrows():
+                ws.append(list(row.values))
+            wb.save(output)
+            return output.getvalue()
+
+        excel_data = convert_df_to_excel(filtered_df)
+
+        st.download_button(
+            label="⬇ Download Payment History (Excel)",
+            data=excel_data,
+            file_name="payment_history.xlsx",
+            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    )
 
 
 
