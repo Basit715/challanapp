@@ -1147,45 +1147,43 @@ elif st.session_state.current_tab == "🧾 Ledger":
     
     if st.button("Add Payment", key="btn_add_payment"):
     
-        # Clean all ledger parties
-        ledger_df["party_clean"] = (
-            ledger_df["party"]
-            .astype(str)
-            .str.strip()
-            .str.upper()
-            .replace(r"\s+", " ", regex=True)
-        )
-    
-        # Clean input
+        # Clean names
+        ledger_df["party_clean"] = ledger_df["party"].str.strip().str.upper()
         pay_clean = payment_party.strip().upper()
     
-        # Filter ledger for only this party
-        party_rows = ledger_df[ledger_df["party_clean"] == pay_clean]
+        # Find existing row
+        idx_list = ledger_df.index[ledger_df["party_clean"] == pay_clean].tolist()
     
-        if len(party_rows) > 0:
-            # existing party → get last balance
-            last_balance = float(party_rows["balance"].iloc[-1])
+        if idx_list:
+            # ---- Update existing party row ----
+            idx = idx_list[0]
+    
+            last_balance = ledger_df.at[idx, "balance"]
+            new_balance = last_balance - payment_amount
+    
+            ledger_df.at[idx, "balance"] = new_balance
+            ledger_df.at[idx, "note"] = payment_note
+            ledger_df.at[idx, "date"] = date.today().strftime("%Y-%m-%d")
+            ledger_df.at[idx, "type"] = "payment"
+            ledger_df.at[idx, "amount"] = payment_amount
+    
+            st.success("Payment updated in same row!")
+    
         else:
-            # new party → start balance at 0
-            last_balance = 0
+            # ---- Add party FIRST TIME ----
+            new_entry = {
+                "entry_id": len(ledger_df)+1,
+                "party": payment_party,
+                "date": date.today().strftime("%Y-%m-%d"),
+                "type": "payment",
+                "amount": payment_amount,
+                "balance": -payment_amount,
+                "note": payment_note
+            }
+            ledger_df = pd.concat([ledger_df, pd.DataFrame([new_entry])], ignore_index=True)
+            st.success("New party added to ledger!")
+
     
-        new_balance = last_balance - payment_amount
-    
-        # Append new row (this is correct!)
-        new_entry = {
-            "entry_id": len(ledger_df) + 1,
-            "party": payment_party,
-            "date": date.today().strftime("%Y-%m-%d"),
-            "type": "payment",
-            "amount": payment_amount,
-            "balance": new_balance,
-            "note": payment_note
-        }
-    
-        ledger_df = pd.concat([ledger_df, pd.DataFrame([new_entry])], ignore_index=True)
-        save_ledger(ledger_df)
-    
-        st.success("Payment added!")
 
 
     save_ledger(ledger_df)
