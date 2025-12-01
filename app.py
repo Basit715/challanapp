@@ -143,16 +143,6 @@ set_bg("file_00000000ad3072069559266e767c6c53.png")
 
 # ---------- SAMPLE APP CONTENT ----------
 
-st.markdown("""
-<div class="card">
-    <h3>Card Title</h3>
-    <p>Card description text goes here.</p>
-</div>
-<div class="card">
-    <h3>Another Card</h3>
-    <p>More description for this card.</p>
-</div>
-""", unsafe_allow_html=True)
 
 # Call function
 #set_bg("file_00000000ad3072069559266e767c6c53.png")
