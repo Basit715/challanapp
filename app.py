@@ -1677,7 +1677,7 @@ elif st.session_state.current_tab == "👤 Edit Party / Balance":
         party_row = ledger_df[ledger_df["party"] == selected_party].iloc[0]
         if "balance" in ledger_df.columns:
             st.markdown(f"**Current balance:** Rs {party_row['balance']}")
-        new_part_name = st.text_input("Party Name", value = party_row['party'])
+        new_party_name = st.text_input("Party Name", value = party_row['party'])
         if "balance" in ledger_df.columns:
             new_balance = st.number_input("Balance", value = float(party_row['balance']), step = 1.0)
             if st.button("Save Changes"):
