@@ -95,6 +95,8 @@ BILLS_FILE = os.path.join(DATA_DIR, "bills.xlsx")
 BILLS_ID = "1JneZFd8IuQGbUTFznvseUecVUweCKk5XgijTi5gOyOA"
 PAYMENTS_FILE = os.path.join(DATA_DIR,"payments.xlsx")
 PAYMENTS_ID = "1Ae6Q87LKAeN5_U8jfX8K-NfHX1JagGOtOkQc_R7ejCU"
+PAYMENT_HISTORY_FILE = os.path.join(DATA_DIR,"payment_history.xlsx")
+PAYMENT_HISTORY_ID = "1mh6f-3E65VK5vQy9K0frU-ggVpq4wudnuzUTi30j_iM"
 MAX_ITEMS = 50
 DEFAULT_GST = 5.0
 APP_TITLE = "💊 NEW PharmaWAYS — WE SELL QUALITY MEDICINES"
@@ -264,6 +266,24 @@ def save_payments(df):
         write_excel_to_drive(df, PAYMENTS_ID)
     except Exception as e:
         st.error(f"Error saving payments {e}")
+def load_payment_history():
+    try:
+        df = read_excel_from_drive(PAYMENT_HISTORY_ID)
+        return df.fillna("")
+    except Exception as e:
+        return pd.DataFrame(columns = ["id","party","date","type","amount","note","party_clean"])
+def save_payment_history(df):
+    try:
+        write_excel_to_drive(df,PAYMENT_HISTORY_ID)
+    except Exception as e:
+        st.error(f"Error saving payment history {e}")
+payment_history_df = load_payment_history()
+if payment_history_df.empty:
+    starting_entries = pd.DataFrame([
+        {1,"Basit","01-12-2025","payments",1000,"cash","Basit}
+    ])
+    payment_history_df = pd.concat([payment_history_df,starting_entries],ignore_index = True)
+    save_payment_history(payment_history_df)
         
         
         
@@ -1182,6 +1202,26 @@ elif st.session_state.current_tab == "🧾 Ledger":
             }
             ledger_df = pd.concat([ledger_df, pd.DataFrame([new_entry])], ignore_index=True)
             st.success("New party added to ledger!")
+                    # ------------------ SAVE TO PAYMENT HISTORY ------------------
+            payment_history_df = load_payment_history()
+    
+            new_payment_id = len(payment_history_df) + 1 if not payment_history_df.empty else 1
+    
+            payment_record = {
+                "payment_id": new_payment_id,
+                "party": payment_party,
+                "date": date.today().strftime("%Y-%m-%d"),
+                "type": "Payment",
+                "amount": payment_amount,
+                "mode": "Cash",
+                "remark": payment_note
+            }
+    
+            payment_history_df = pd.concat([payment_history_df, pd.DataFrame([payment_record])], ignore_index=True)
+    
+            save_payment_history(payment_history_df)
+        # -------------------------------------------------------------
+
 
     
 
