@@ -1226,7 +1226,7 @@ elif st.session_state.current_tab == "💳 Recurring Payment":
                 st.write(f"{party_name} → No balance recorded")
     else:
         st.info("No payments due today")
-elif st.session_state.current_state == "🧾 Billing":
+elif st.session_state.current_tab == "🧾 Billing":
     st.header("💳 Billing System")
 
     billing_type = st.radio(
