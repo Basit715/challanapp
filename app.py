@@ -519,6 +519,29 @@ body { color: #e6eef6; }
 }
 </style>
 """, unsafe_allow_html=True)
+st.markdown("""
+<style>
+/* Remove white main container background */
+.block-container {
+    background-color: transparent !important;
+}
+
+/* Remove mobile white background */
+[data-testid="stMain"] {
+    background-color: transparent !important;
+}
+
+/* Make body fully transparent */
+html, body, .stApp {
+    background-color: transparent !important;
+}
+
+/* Make sidebar transparent */
+[data-testid="stSidebar"] {
+    background-color: transparent !important;
+}
+</style>
+""", unsafe_allow_html=True)
 
 # ------------------ Session State ------------------
 if "current_tab" not in st.session_state:
