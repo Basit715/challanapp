@@ -56,6 +56,36 @@ from datetime import date, datetime
 from fpdf import FPDF
 from io import BytesIO
 from urllib.parse import quote_plus
+import streamlit as st
+import base64
+
+def set_bg(image_file):
+    with open(image_file, "rb") as f:
+        encoded = base64.b64encode(f.read()).decode()
+
+    st.markdown(
+        f"""
+        <style>
+        [data-testid="stAppViewContainer"] {{
+            background: url("data:image/png;base64,{encoded}");
+            background-size: cover;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+            background-position: center;
+        }}
+
+        [data-testid="stHeader"], [data-testid="stToolbar"] {{
+            background: transparent !important;
+        }}
+
+        body {{
+            background: transparent !important;
+        }}
+        </style>
+        """,
+        unsafe_allow_html=True
+    )
+set_bg("file_00000000ad3072069559266e767c6c53.png")
 st.sidebar.header("Tools")
 if st.sidebar.button("Clear Cache"):
     st.cache_data.clear()
