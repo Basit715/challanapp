@@ -406,11 +406,7 @@ if "daily_earnings_df" not in st.session_state:
 
 
 # ------------------ Page Config ------------------
-st.set_page_config(
-    page_title="Pharma Challan Manager",
-    layout="wide",
-    initial_sidebar_state="auto"
-)
+
 
 # ------------------ CSS Theme ------------------
 st.markdown("""
