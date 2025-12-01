@@ -103,7 +103,7 @@ def set_bg(image_file):
     )
 
 # Call function
-set_bg("file_00000000ad3072069559266e767c6c53.png")
+#set_bg("file_00000000ad3072069559266e767c6c53.png")
 st.sidebar.header("Tools")
 if st.sidebar.button("Clear Cache"):
     st.cache_data.clear()
