@@ -1687,11 +1687,16 @@ elif st.session_state.current_tab == "💰 Daily Earnings":
     st.title("Daily Earnings Tracker")
     daily_earnings_df = st.session_state.daily_earnings_df
     if not daily_earnings_df.empty:
-        st.subheader("Day Wise Earning")
-        df_daywise = (daily_earnings_df.groupby("DATE", as_index = False)["EARNING"].sum().rename(columns= {"EARNING:TOTAL EARNING"}))
-        st.dataframe(df_daywise)
+        st.subheader("Daily Earnings Summary")
+        df_daily = daily_earnings_df.copy()
+        df_daily['DATE'] = pd.to_datetime(df_daily['DATE'])
+        summary_table = df_daily.groupby('DATE',as_index = False)['EARNING'].sum()
+        summary_table['DATE'] = summary_table['DATE'].dt.strftime('%Y-%m-%d')
+        summary_table = summary_table.sort_values('DATE',ascending = False)
+        st.dataframe(summary_table.rename(columns = {'DATE': 'DATE','EARNING':'TOTAL EARNING (₹)'}))
     else:
         st.info("No Earnings Recorded")
+        
     st.markdown("-----")
 
 
