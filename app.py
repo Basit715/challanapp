@@ -61,12 +61,7 @@ import base64
 
 
 
-import streamlit as st
-import base64
 
-def set_bg(image_file):
-import streamlit as st
-import base64
 
 # ---------- FUNCTION TO SET BACKGROUND ----------
 def set_bg(image_file):
