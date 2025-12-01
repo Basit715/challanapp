@@ -498,7 +498,7 @@ tabs = [
 
 # ------------------ Dashboard Grid ------------------
 # ------------------ Dashboard Grid ------------------
-st.markdown("<h1 style='text-align:center;'>Pharma Challan Manager</h1>", unsafe_allow_html=True)
+st.markdown("<h1 style='text-align:center;'>My Own Bussiness Manager</h1>", unsafe_allow_html=True)
 st.markdown("---")
 
 cols = st.columns(4)
