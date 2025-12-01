@@ -59,6 +59,8 @@ from urllib.parse import quote_plus
 import streamlit as st
 import base64
 
+
+
 def set_bg(image_file):
     with open(image_file, "rb") as f:
         encoded = base64.b64encode(f.read()).decode()
@@ -66,6 +68,7 @@ def set_bg(image_file):
     st.markdown(
         f"""
         <style>
+        /* Set the background image */
         [data-testid="stAppViewContainer"] {{
             background: url("data:image/png;base64,{encoded}");
             background-size: cover;
@@ -74,17 +77,30 @@ def set_bg(image_file):
             background-position: center;
         }}
 
+        /* Make main content transparent */
+        [data-testid="stMain"], .block-container {{
+            background-color: transparent !important;
+        }}
+
+        /* Make sidebar transparent */
+        [data-testid="stSidebar"] {{
+            background-color: rgba(0,0,0,0.2) !important;  /* slight transparency so text readable */
+        }}
+
+        /* Remove header & toolbar background */
         [data-testid="stHeader"], [data-testid="stToolbar"] {{
             background: transparent !important;
         }}
 
-        body {{
-            background: transparent !important;
+        html, body, .stApp {{
+            background-color: transparent !important;
         }}
         </style>
         """,
         unsafe_allow_html=True
     )
+
+# Call the function with your image
 set_bg("file_00000000ad3072069559266e767c6c53.png")
 st.sidebar.header("Tools")
 if st.sidebar.button("Clear Cache"):
