@@ -1686,6 +1686,13 @@ elif st.session_state.current_tab == "🧮 Calculator":
 elif st.session_state.current_tab == "💰 Daily Earnings":
     st.title("Daily Earnings Tracker")
     daily_earnings_df = st.session_state.daily_earnings_df
+    if not daily_earnings_df.empty:
+        st.subheader("Day Wise Earning")
+        df_daywise = (daily_earnings_df.groupby("DATE", as_index = False)["EARNING"].sum().rename(columns= {"EARNING:TOTAL EARNING"}))
+        st.dataframe(df_daywise)
+    else:
+        st.info("No Earnings Recorded")
+    st.markdown("-----")
 
 
 
