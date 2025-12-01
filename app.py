@@ -65,42 +65,99 @@ import streamlit as st
 import base64
 
 def set_bg(image_file):
-    # Read and encode image
+import streamlit as st
+import base64
+
+# ---------- FUNCTION TO SET BACKGROUND ----------
+def set_bg(image_file):
     with open(image_file, "rb") as f:
         encoded = base64.b64encode(f.read()).decode()
     
-    # Apply CSS
-    st.markdown(
-        f"""
-        <style>
-        /* Set background image for the app */
-        .stApp {{
-            background: url("data:image/png;base64,{encoded}") no-repeat center center fixed;
-            background-size: cover;
-        }}
+    st.markdown(f"""
+    <style>
+    :root {{
+        --bg: #0a0b1000;  /* fully transparent */
+        --panel: #101522;
+        --muted: #9fb7d8;
+        --accent: #2ea6ff;
+        --accent2: #5ab2ff;
+        --card: rgba(14,22,40,0.8); /* slightly transparent cards */
+        --glass: rgba(255,255,255,0.05);
+    }}
 
-        /* Make main content transparent */
-        .block-container, [data-testid="stMain"], .css-1lcbmhc.e8zbici2 {{
-            background-color: transparent !important;
-        }}
+    /* ---------- FULL APP BACKGROUND IMAGE ---------- */
+    body, .stApp {{
+        background: url("data:image/png;base64,{encoded}") no-repeat center center fixed;
+        background-size: cover;
+        background-attachment: fixed;
+    }}
 
-        /* Make sidebar transparent */
-        [data-testid="stSidebar"] {{
-            background-color: rgba(0,0,0,0.2) !important; /* slight transparency */
-        }}
+    /* ---------- Make main content transparent ---------- */
+    .block-container, [data-testid="stMain"], .css-1lcbmhc {{
+        background-color: rgba(255,255,255,0) !important;
+    }}
 
-        /* Remove header and toolbar background */
-        [data-testid="stHeader"], [data-testid="stToolbar"] {{
-            background: transparent !important;
-        }}
+    /* ---------- Sidebar with slight opacity ---------- */
+    [data-testid="stSidebar"] {{
+        background-color: rgba(0,0,0,0.25) !important;
+    }}
 
-        html, body {{
-            background-color: transparent !important;
-        }}
-        </style>
-        """,
-        unsafe_allow_html=True
-    )
+    /* ---------- Remove header & toolbar ---------- */
+    [data-testid="stHeader"], [data-testid="stToolbar"] {{
+        background: transparent !important;
+    }}
+
+    /* ---------- Card styles ---------- */
+    .card {{
+        background: var(--card);
+        border-radius: 16px;
+        padding: 20px;
+        box-shadow: 0 8px 24px rgba(0,0,0,0.6);
+        border: 1px solid rgba(255,255,255,0.05);
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        margin-bottom: 20px;
+    }}
+
+    .card:hover {{
+        transform: translateY(-5px);
+        box-shadow: 0 12px 28px rgba(46,166,255,0.4);
+    }}
+
+    .card h3 {{
+        margin: 10px 0 0 0;
+        font-size: 18px;
+    }}
+
+    .card p {{
+        margin: 5px 0 0 0;
+        font-size: 13px;
+        color: var(--muted);
+    }}
+
+    /* ---------- Text color ---------- */
+    body {{
+        color: #e6eef6;
+    }}
+    </style>
+    """, unsafe_allow_html=True)
+
+# ---------- CALL FUNCTION ----------
+set_bg("file_00000000ad3072069559266e767c6c53.png")
+
+# ---------- SAMPLE APP CONTENT ----------
+
+st.markdown("""
+<div class="card">
+    <h3>Card Title</h3>
+    <p>Card description text goes here.</p>
+</div>
+<div class="card">
+    <h3>Another Card</h3>
+    <p>More description for this card.</p>
+</div>
+""", unsafe_allow_html=True)
 
 # Call function
 #set_bg("file_00000000ad3072069559266e767c6c53.png")
