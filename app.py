@@ -1864,10 +1864,11 @@ elif st.session_state.current_tab == "PAYMENT HISTORY":
     payment_history_df = load_payment_history()
 
     if payment_history_df.empty:
-    st.info("No payment history recorded yet.")
+        st.info("No payment history recorded yet.")
    else:
+       
     # --- Filters ---
-    col1, col2, col3 = st.columns(3)
+       col1, col2, col3 = st.columns(3)
 
     with col1:
         selected_party = st.selectbox(
