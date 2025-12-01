@@ -493,7 +493,7 @@ for i, (title, subtitle) in enumerate(tabs):
     with cols[i % 4]:
         if st.button(f"{title}\n{subtitle}", key=f"btn_{title}"):
             st.session_state.current_tab = title
-            st.experimental_rerun()
+            st.rerun()
 
 # Example: render content per tab
 if st.session_state.current_tab == "📋 Challans":
@@ -658,7 +658,7 @@ if st.session_state.current_tab == "📋 Challans":
                 challans_df = load_challans()
                 med_df = load_medicines()
                 try:
-                    st.experimental_rerun()
+                    st.rerun()
                 except:
                     pass
 
@@ -721,7 +721,7 @@ if st.session_state.current_tab == "📋 Challans":
                         if st.button("Edit Challan", key=f"edit_ch_{ch}"):
                             st.session_state["_edit_challan"] = ch
                             try:
-                                st.experimental_rerun()
+                                st.rerun()
                             except:
                                 pass
                     with c2:
@@ -731,7 +731,7 @@ if st.session_state.current_tab == "📋 Challans":
                             save_challans(challans_df)
                             st.success(f"Deleted challan {ch}")
                             try:
-                                st.experimental_rerun()
+                                st.rerun()
                             except:
                                 pass
                     with c3:
@@ -799,14 +799,14 @@ if "_edit_challan" in st.session_state:
                 st.success("Challan updated.")
                 del st.session_state["_edit_challan"]
                 try:
-                    st.experimental_rerun()
+                    st.rerun()
                 except:
                     pass
         with ccancel:
             if st.button("Cancel Edit", key=f"cancel_edit_{edit_no}"):
                 del st.session_state["_edit_challan"]
                 try:
-                    st.experimental_rerun()
+                    st.rerun()
                 except:
                     pass
 
@@ -1023,7 +1023,7 @@ elif st.session_state.current_tab == "📔 Day Book":
                 master = master[~master["entry_id"].isin(to_remove_ids)]
                 save_daybook(master)
                 st.success("Purged filtered entries.")
-                st.experimental_rerun()
+                st.rerun()
             else:
                 st.warning("Type YES to confirm.")
 elif st.session_state.current_tab == "📊 Dashboard":
@@ -1226,7 +1226,7 @@ elif st.session_state.current_tab == "💳 Recurring Payment":
                 st.write(f"{party_name} → No balance recorded")
     else:
         st.info("No payments due today")
-elif st.session_state.current_tab == "🧾 Billing":
+elif st.session_state.current_state == "🧾 Billing":
     st.header("💳 Billing System")
 
     billing_type = st.radio(
