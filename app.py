@@ -1203,23 +1203,26 @@ elif st.session_state.current_tab == "🧾 Ledger":
             ledger_df = pd.concat([ledger_df, pd.DataFrame([new_entry])], ignore_index=True)
             st.success("New party added to ledger!")
                     # ------------------ SAVE TO PAYMENT HISTORY ------------------
-            payment_history_df = load_payment_history()
-    
-            new_payment_id = len(payment_history_df) + 1 if not payment_history_df.empty else 1
-    
-            payment_record = {
-                "payment_id": new_payment_id,
-                "party": payment_party,
-                "date": date.today().strftime("%Y-%m-%d"),
-                "type": "Payment",
-                "amount": payment_amount,
-                "mode": "Cash",
-                "remark": payment_note
-            }
-    
-            payment_history_df = pd.concat([payment_history_df, pd.DataFrame([payment_record])], ignore_index=True)
-    
-            save_payment_history(payment_history_df)
+                # ------------------ SAVE TO PAYMENT HISTORY ------------------
+        payment_history_df = load_payment_history()
+
+        new_payment_id = len(payment_history_df) + 1 if not payment_history_df.empty else 1
+
+        payment_record = {
+            "payment_id": new_payment_id,
+            "party": payment_party,
+            "date": date.today().strftime("%Y-%m-%d"),
+            "type": "Payment",
+            "amount": payment_amount,
+            "mode": "Cash",
+            "remark": payment_note
+        }
+
+        payment_history_df = pd.concat([payment_history_df, pd.DataFrame([payment_record])], ignore_index=True)
+
+        save_payment_history(payment_history_df)
+        # -------------------------------------------------------------
+
         # -------------------------------------------------------------
 
 
