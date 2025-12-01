@@ -493,7 +493,7 @@ tabs = [
     ("📚 Sales Book", "Sales records"),
     ("💵 Daily Payments", "Payments received"),
     ("📦 Challan Status", "Track challan status"),
-    ("PAYMENT HISTORY","TRACK PAYMENTS")
+    ("💳 Payment History","TRACK PAYMENTS")
 ]
 
 # ------------------ Dashboard Grid ------------------
