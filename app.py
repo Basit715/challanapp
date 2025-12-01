@@ -61,38 +61,40 @@ import base64
 
 
 
+import streamlit as st
+import base64
+
 def set_bg(image_file):
+    # Read and encode image
     with open(image_file, "rb") as f:
         encoded = base64.b64encode(f.read()).decode()
-
+    
+    # Apply CSS
     st.markdown(
         f"""
         <style>
-        /* Set the background image */
-        [data-testid="stAppViewContainer"] {{
-            background: url("data:image/png;base64,{encoded}");
+        /* Set background image for the app */
+        .stApp {{
+            background: url("data:image/png;base64,{encoded}") no-repeat center center fixed;
             background-size: cover;
-            background-repeat: no-repeat;
-            background-attachment: fixed;
-            background-position: center;
         }}
 
         /* Make main content transparent */
-        [data-testid="stMain"], .block-container {{
+        .block-container, [data-testid="stMain"], .css-1lcbmhc.e8zbici2 {{
             background-color: transparent !important;
         }}
 
         /* Make sidebar transparent */
         [data-testid="stSidebar"] {{
-            background-color: rgba(0,0,0,0.2) !important;  /* slight transparency so text readable */
+            background-color: rgba(0,0,0,0.2) !important; /* slight transparency */
         }}
 
-        /* Remove header & toolbar background */
+        /* Remove header and toolbar background */
         [data-testid="stHeader"], [data-testid="stToolbar"] {{
             background: transparent !important;
         }}
 
-        html, body, .stApp {{
+        html, body {{
             background-color: transparent !important;
         }}
         </style>
@@ -100,7 +102,7 @@ def set_bg(image_file):
         unsafe_allow_html=True
     )
 
-# Call the function with your image
+# Call function
 set_bg("file_00000000ad3072069559266e767c6c53.png")
 st.sidebar.header("Tools")
 if st.sidebar.button("Clear Cache"):
