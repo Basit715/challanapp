@@ -1857,7 +1857,7 @@ elif st.session_state.current_tab == "📦 Challan Status":
 
     st.subheader("🟢 Billed Challans")
     st.dataframe(challans_df[challans_df["billed"] == True][["challan_no", "date", "party", "amount", "Status"]])
-elif st.session_state.current_tab == "Payment History":
+elif st.session_state.current_tab == "💳 Payment History":
     st.subheader("📜 Payment History")
 
     # Load payment history file
