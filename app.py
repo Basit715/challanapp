@@ -1771,7 +1771,7 @@ elif st.session_state.current_tab == "🧮 Calculator":
     mrp = st.number_input("Enter MRP (₹):", min_value=0.0, value=0.0, step=0.1)
     retailer_margin = 20
     stokist_margin = 10
-    gst = st.radio("Choose G.S.T", [12, 5])
+    gst = st.radio("Choose G.S.T", [12, 5,18])
     quantity = st.number_input("Enter quantity", min_value = 1, value = 1, step = 1)
     hPTR = (mrp - (mrp * (retailer_margin /100)))/(1 + (gst/100))
     PTR = round(hPTR * 1.01,2)
