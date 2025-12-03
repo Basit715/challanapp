@@ -629,144 +629,319 @@ for i, (title, subtitle) in enumerate(tabs):
 
 # Example: render content per tab
 if st.session_state.current_tab == "📋 Challans":
-    #code here
-    
-
-# ---------- Create / View Challans (AG-Grid entry) ----------
-    
-
-# Assuming med_df, ledger_df, challans_df are already loaded
-    med_names = sorted(med_df["name"].dropna().unique().tolist())
-    party_list = ledger_df["party"].unique().tolist() if not ledger_df.empty else []
-    
-    # --- Initialize session_state for grid rows ---
-    if "new_grid_rows" not in st.session_state:
-        st.session_state["new_grid_rows"] = [{
-            "PRODUCT": "",
-            "BATCH": "",
-            "MRP": 0.0,
-            "RATE": 0.0,
-            "QTY": 1.0,
-            "DISCOUNT": 0.0,
-            "GST": DEFAULT_GST,
-            "AMOUNT": 0.0
-        }]
-    
-    # --- Header ---
     st.header("➕ Create / View Challans")
-    
     col1, col2 = st.columns([2,3])
     with col1:
         st.subheader("Create New Challan")
-    
-        # --- Challan number ---
+        # next challan number
         existing = challans_df["challan_no"].dropna().unique().tolist() if not challans_df.empty else []
         if existing:
             try:
                 next_no = int(max(existing)) + 1
             except:
-                next_no = int(date.today().strftime("%Y%m%d%H%M%S")[:10])
+                next_no = int(datetime.now().strftime("%Y%m%d%H%M%S")[:10])
         else:
             next_no = 1
-    
         challan_no = st.number_input("Challan No", min_value=1, value=int(next_no), step=1, key="new_challan_no")
-        party = st.selectbox("Party Name", options=party_list, index=0)
+        party_list = ledger_df["party"].unique().tolist()
+
+        party = st.selectbox(
+           "Party Name",
+            options=party_list,
+            index=None,
+           placeholder="Type or choose a party..."
+          )
         date_val = st.date_input("Date", value=date.today(), key="new_date")
-    
-        # --- AG Grid for items ---
-        df_grid = pd.DataFrame(st.session_state["new_grid_rows"])
-    
-        # Function to compute amounts
-        def compute_amounts(df):
-            df = df.copy()
-            df["QTY"] = pd.to_numeric(df["QTY"], errors="coerce").fillna(0)
-            df["RATE"] = pd.to_numeric(df["RATE"], errors="coerce").fillna(0)
-            df["DISCOUNT"] = pd.to_numeric(df["DISCOUNT"], errors="coerce").fillna(0)
-            df["GST"] = pd.to_numeric(df["GST"], errors="coerce").fillna(DEFAULT_GST)
-            df["VALUE"] = (df["QTY"] * df["RATE"]).round(2)
-            df["DISC_AMT"] = (df["VALUE"] * df["DISCOUNT"] / 100).round(2)
-            df["TAXABLE"] = (df["VALUE"] - df["DISC_AMT"]).round(2)
-            df["TAX_AMT"] = (df["TAXABLE"] * df["GST"] / 100).round(2)
-            df["AMOUNT"] = (df["TAXABLE"] + df["TAX_AMT"]).round(2)
-            return df
-    
-        df_grid = compute_amounts(df_grid)
-    
-        gb = GridOptionsBuilder.from_dataframe(df_grid)
-        gb.configure_default_column(editable=True, resizable=True)
-    
-        # --- PRODUCT column dropdown ---
-        gb.configure_column("PRODUCT", editable=True, cellEditor='agSelectCellEditor',
-                            cellEditorParams={'values': med_names}, width=300)
-        # --- BATCH column dropdown will be filled dynamically below ---
-        gb.configure_column("BATCH", editable=True, width=150)
-        gb.configure_column("MRP", editable=False, width=100)
-        gb.configure_column("RATE", width=100)
-        gb.configure_column("QTY", width=90)
-        gb.configure_column("DISCOUNT", width=100)
-        gb.configure_column("GST", width=90)
-        gb.configure_column("AMOUNT", editable=False, width=120)
-    
-        gb.configure_selection(selection_mode="single", use_checkbox=True)
-        gb.configure_grid_options(domLayout='autoHeight')
-        grid_options = gb.build()
-    
-        grid_resp = AgGrid(
-            df_grid,
-            gridOptions=grid_options,
-            update_mode=GridUpdateMode.MODEL_CHANGED,
-            data_return_mode=DataReturnMode.FILTERED_AND_SORTED,
-            fit_columns_on_grid_load=True,
-            theme="alpine",
-            height=400
-        )
-    
-        updated = pd.DataFrame(grid_resp["data"])
-    
-        # --- Auto-fill BATCH, MRP, RATE ---
-        for idx, row in updated.iterrows():
-            if row["PRODUCT"]:
-                med_rows = med_df[med_df["name"]==row["PRODUCT"]]
-                if not med_rows.empty:
-                    # Pick first batch if batch invalid
-                    if row["BATCH"] not in med_rows["batch"].tolist():
-                        updated.at[idx,"BATCH"] = med_rows.iloc[0]["batch"]
-                    # Auto-fill MRP & RATE
-                    batch_row = med_rows[med_rows["batch"]==updated.at[idx,"BATCH"]].iloc[0]
-                    updated.at[idx,"MRP"] = batch_row.get("mrp", 0)
-                    updated.at[idx,"RATE"] = batch_row.get("rate", 0)
-        updated = compute_amounts(updated)
-        st.session_state["new_grid_rows"] = updated.to_dict(orient="records")
-    
-        # --- Add / Delete rows ---
-        c1, c2 = st.columns([1,1])
-        with c1:
-            if st.button("➕ Add Row"):
-                st.session_state["new_grid_rows"].append({
-                    "PRODUCT": "",
-                    "BATCH": "",
-                    "MRP": 0.0,
-                    "RATE": 0.0,
-                    "QTY": 1.0,
-                    "DISCOUNT": 0.0,
-                    "GST": DEFAULT_GST,
-                    "AMOUNT": 0.0
-                })
-                st.experimental_rerun()
-        with c2:
-            selected = grid_resp.get("selected_rows", [])
-            if st.button("🗑️ Delete Selected"):
-                if selected:
-                    sel = selected[0]
-                    mask = ~((updated["PRODUCT"]==sel.get("PRODUCT")) &
-                             (updated["BATCH"]==sel.get("BATCH")) &
-                             (updated["QTY"]==sel.get("QTY")))
-                    st.session_state["new_grid_rows"] = updated[mask].to_dict(orient="records")
-                    st.experimental_rerun()
-    
-        # --- Grand Total ---
-        grand_total = updated["AMOUNT"].sum()
+        num_items = st.number_input("Number of items", min_value=1, max_value=MAX_ITEMS, value=1, key="new_num_items")
+        new_items = []
+        # prepare medicine names list
+        med_names = sorted(med_df["name"].dropna().unique().tolist())
+        for i in range(int(num_items)):
+            st.markdown(f"---\n**Item #{i+1}**")
+            c1,c2,c3 = st.columns([4,2,2])
+            with c1:
+                selected_med = st.selectbox(f"Medicine {i+1}", options=["-- type or pick --"] + med_names, key=f"sel_med_{challan_no}_{i}")
+                batch_opts = []
+                if selected_med and selected_med != "-- type or pick --":
+                    batch_opts = med_df[med_df["name"]==selected_med]["batch"].astype(str).tolist()
+                selected_batch = st.selectbox(f"Batch {i+1}", options=["-- select batch --"] + batch_opts, key=f"sel_batch_{challan_no}_{i}")
+                item_name = st.text_input(f"Item name (or override)", value=selected_med if selected_med and selected_med != "-- type or pick --" else "", key=f"item_name_{challan_no}_{i}")
+            with c2:
+                qty = st.number_input(f"Qty {i+1}", min_value=0.0, value=1.0, step=1.0, key=f"qty_{challan_no}_{i}")
+                # show stock for selected batch
+                stock_text = ""
+                if selected_med and selected_batch and selected_batch != "-- select batch --":
+                    batch_row = med_df[(med_df["name"]==selected_med) & (med_df["batch"]==selected_batch)]
+                    if not batch_row.empty:
+                        stock_text = f"Stock: {batch_row.iloc[0]['qty']}"
+                st.markdown(stock_text)
+            with c3:
+
+
+                # autofill rate & gst from selected batch if available
+                
+
+                # Create session keys for this row
+                mrp_key = f"mrp_{challan_no}_{i}"
+                rate_key = f"rate_{challan_no}_{i}"
+                gst_key = f"gst_{challan_no}_{i}"
+
+                # Initialize keys if not exist
+                if mrp_key not in st.session_state:
+                    st.session_state[mrp_key] = 0.0
+                if rate_key not in st.session_state:
+                    st.session_state[rate_key] = 0.0
+                if gst_key not in st.session_state:
+                    st.session_state[gst_key] = DEFAULT_GST
+
+                # Find matching batch row
+                if selected_med != "-- type or pick --" and selected_batch != "-- select batch --":
+                    match = med_df[
+                        (med_df["name"].astype(str).str.strip().str.upper() == selected_med.strip().upper()) &
+                        (med_df["batch"].astype(str).str.strip().str.upper() == selected_batch.strip().upper())
+                    ]
+                    if not match.empty:
+                        row = match.iloc[0]
+
+                        # UPDATE SESSION VALUES (autofill happens here)
+                        st.session_state[mrp_key] = float(row.get("mrp", row.get("MRP", 0)) or 0)
+                        st.session_state[rate_key] = float(row.get("rate", row.get("RATE", 0)) or 0)
+                        st.session_state[gst_key] = float(row.get("gst", row.get("GST", DEFAULT_GST)) or DEFAULT_GST)
+
+                # Now create widgets USING session_state
+                mrp = st.number_input(
+                    f"MRP {i+1}",
+                    min_value=0.0,
+                    key=mrp_key
+                )
+                rate = st.number_input(
+                    f"Rate {i+1}",
+                    min_value=0.0,
+                    key=rate_key
+                )
+                gst = st.number_input(
+                    f"GST % {i+1}",
+                    min_value=0.0,
+                    max_value=28.0,
+                    key=gst_key
+                )
+                discount = st.number_input(
+                    f"Discount % {i+1}",
+                    min_value=0.0,
+                    max_value=100.0,
+                    value=0.0,
+                    key=f"disc_{challan_no}_{i}"
+                )
+
+            amt = compute_row_amount(qty, rate, discount, gst)
+            st.write(f"Row total (after discount + GST): **₹ {amt:.2f}**")
+            new_items.append({
+                "challan_no": int(challan_no),
+                "date": date_val.strftime("%Y-%m-%d"),
+                "party": party,
+                "item": selected_med,
+                "batch": selected_batch if selected_batch and selected_batch!="-- select batch --" else "",
+                "qty": qty,
+                "rate": rate,
+                "mrp":mrp,
+                "discount": discount,
+                "gst": gst,
+                "amount": amt,
+                "grand_total": 0.0,
+                "billed":False
+            })
+        grand_total = round(sum(x["amount"] for x in new_items), 2)
         st.subheader(f"Grand Total: ₹ {grand_total:.2f}")
+        if 'billed' not in challans_df:
+            challans_df['billed'] = False 
+        if st.button("Save Challan and reduce stock", key=f"save_ch_{challan_no}"):
+            if not party:
+                st.error("Enter party name.")
+            else:
+                # check stock availability for each item (if batch chosen)
+                for it in new_items:
+                    if it["batch"]:
+                        batch_row = med_df[(med_df["name"]==it["item"]) & (med_df["batch"]==it["batch"])]
+                        if batch_row.empty:
+                            batch_row = med_df[med_df["batch"]==it["batch"]]
+                        if not batch_row.empty:
+                            available = float(batch_row.iloc[0]["qty"])
+                            if available < float(it["qty"]):
+                                st.error(f"Not enough stock for {it['item']} batch {it['batch']}. Available {available}, requested {it['qty']}")
+                                st.stop()
+                # apply changes: reduce stock and append challan rows
+                for it in new_items:
+                    it["grand_total"] = grand_total
+                    if it["batch"]:
+                        idxs = med_df[(med_df["batch"]==it["batch"]) & (med_df["name"]==it["item"])].index
+                        if len(idxs)==0:
+                            idxs = med_df[med_df["batch"]==it["batch"]].index
+                        if len(idxs)>0:
+                            midx = idxs[0]
+                            med_df.at[midx,"qty"] = float(med_df.at[midx,"qty"]) - float(it["qty"])
+                # append to challan dataframe
+                new_df = pd.DataFrame(new_items)
+                challans_df = load_challans()
+                challans_df = pd.concat([challans_df, new_df], ignore_index=True)
+                save_challans(challans_df)
+                save_medicines(med_df)
+                st.success(f"Challan {challan_no} saved. Grand total ₹ {grand_total:.2f}")
+                
+                # reload data
+                challans_df = load_challans()
+                med_df = load_medicines()
+                try:
+                    st.rerun()
+                except:
+                    pass
+
+    with col2:
+        st.subheader("Saved Challans")
+        if challans_df.empty:
+            st.info("No challans yet.")
+        else:
+            # unique challans
+            unique_ch = sorted(challans_df["challan_no"].unique().tolist(), reverse=True)
+            search = st.text_input("Search party or item (partial)", key="search_ch")
+            filtered = []
+            for ch in unique_ch:
+                chdf = challans_df[challans_df["challan_no"]==ch]
+                if search:
+                    if chdf["party"].astype(str).str.contains(search, case=False, na=False).any() or chdf["item"].astype(str).str.contains(search, case=False, na=False).any():
+                        filtered.append(ch)
+                else:
+                    filtered.append(ch)
+            for ch in filtered:
+                chdf = challans_df[challans_df["challan_no"]==ch].copy()
+                if chdf.empty:
+                    continue
+                party = chdf.iloc[0]["party"]
+                date_str = chdf.iloc[0]["date"]
+                grand = float(chdf.iloc[0].get("grand_total", chdf["amount"].sum()))
+                with st.expander(f"Challan {ch} — {party} — {date_str} — Grand ₹{grand:.2f}", expanded=False):
+                    st.write(f"Party: **{party}** &nbsp;&nbsp; Date: **{date_str}**")
+                    st.dataframe(chdf[["item","batch","qty","rate","discount","gst","amount"]].reset_index(drop=True))
+                    # Download PDF
+                    pdf_bytes = challan_to_pdf_bytes(chdf)
+                    st.download_button("Download Challan (PDF)", data=pdf_bytes, file_name=f"challan_{ch}.pdf", mime="application/pdf", key=f"dlpdf_{ch}")
+                    msg_lines = []
+                    msg_lines.append(f"challan {ch} | Date: {date_str}")
+                    msg_lines.append(f"Party: {party}")
+                    msg_lines.append("")
+                    for _,row in chdf.iterrows():
+                        item = str(row.get("item",""))
+                        batch = str(row.get("batch",""))
+                        qty = row.get("qty",0)
+                        rate = row.get("rate",0)
+                        amt = row.get("amount",0)
+                        msg_lines.append(f"{item} | Batch:{batch} | Qty: {qty} | Rate:{rate} | Amt: {amt}")
+                        msg_lines.append("")
+                        msg_lines.append(f"Grand Total: Rs {grand:.2f}")
+                        msg_lines.append("")
+                        msg_lines.append("Please find challan attached. - New pharmaways")
+                        message_text = "\n".join(msg_lines)
+                        encoded = quote_plus(message_text)
+
+                        if wa_default_number and wa_default_number.strip():
+                            wa_link = f"https://wa.me/{wa_default_number.strip()}?text={encoded}"
+                        else:
+                            wa_link = f"https://wa.me/?text={encoded}"
+                        st.markdown("**WhatsApp message preview**")
+                        st.code(message_text)
+                        st.markdown(f'<a href="{wa_link}" target="_blank>Send via Whatsapp</a>"')
+                    c1,c2,c3 = st.columns([1,1,1])
+                    with c1:
+                        if st.button("Edit Challan", key=f"edit_ch_{ch}"):
+                            st.session_state["_edit_challan"] = ch
+                            try:
+                                st.rerun()
+                            except:
+                                pass
+                    with c2:
+                        if st.button("Delete Challan", key=f"del_ch_{ch}"):
+                            # delete all rows with this challan
+                            challans_df = challans_df[challans_df["challan_no"] != ch]
+                            save_challans(challans_df)
+                            st.success(f"Deleted challan {ch}")
+                            try:
+                                st.rerun()
+                            except:
+                                pass
+                    with c3:
+                        # export summary CSV as well
+                        agg = pd.DataFrame([{
+                            "challan_no": ch,
+                            "party": party,
+                            "date": date_str,
+                            "grand_total": grand,
+                            "items_count": len(chdf)
+                        }])
+                        st.download_button("Download summary CSV", data=agg.to_csv(index=False).encode("utf-8"), file_name=f"challan_{ch}_summary.csv", mime="text/csv", key=f"dl_sum_{ch}")
+
+# ---------------- Edit Challan if requested ----------------
+if "_edit_challan" in st.session_state:
+    edit_no = st.session_state["_edit_challan"]
+    st.markdown("---")
+    st.header(f"✏️ Edit Challan {edit_no}")
+    edit_df = challans_df[challans_df["challan_no"]==edit_no].copy()
+    if edit_df.empty:
+        st.error("Challan not found (it may have been deleted).")
+        del st.session_state["_edit_challan"]
+    else:
+        edit_party = st.text_input("Party", value=str(edit_df.iloc[0]["party"]), key=f"edit_party_{edit_no}")
+        edit_date = st.date_input("Date", value=pd.to_datetime(edit_df.iloc[0]["date"]).date() if pd.notna(edit_df.iloc[0]["date"]) else date.today(), key=f"edit_date_{edit_no}")
+        st.markdown("**Edit line items**")
+        updated_items = []
+        for local_idx, row in edit_df.reset_index(drop=True).iterrows():
+            st.markdown(f"---\n**Row {local_idx+1}**")
+            c1, c2, c3 = st.columns([4,2,2])
+            with c1:
+                new_item = st.text_input(f"Item {local_idx}", value=row.get("item",""), key=f"edit_item_{edit_no}_{local_idx}")
+                new_batch = st.text_input(f"Batch {local_idx}", value=row.get("batch",""), key=f"edit_batch_{edit_no}_{local_idx}")
+            with c2:
+                new_qty = st.number_input(f"Qty {local_idx}", min_value=0.0, value=float(row.get("qty",0.0)), key=f"edit_qty_{edit_no}_{local_idx}")
+                new_rate = st.number_input(f"Rate {local_idx}", min_value=0.0, value=float(row.get("rate",0.0)), key=f"edit_rate_{edit_no}_{local_idx}")
+            with c3:
+                new_disc = st.number_input(f"Discount % {local_idx}", min_value=0.0, max_value=100.0, value=float(row.get("discount",0.0)), key=f"edit_disc_{edit_no}_{local_idx}")
+                new_gst = st.number_input(f"GST % {local_idx}", min_value=0.0, max_value=28.0, value=float(row.get("gst",DEFAULT_GST)), key=f"edit_gst_{edit_no}_{local_idx}")
+            new_amount = compute_row_amount(new_qty, new_rate, new_disc, new_gst)
+            st.write(f"Row total: **₹ {new_amount:.2f}**")
+            updated_items.append({
+                "challan_no": edit_no,
+                "date": edit_date.strftime("%Y-%m-%d"),
+                "party": edit_party,
+                "item": new_item,
+                "batch": new_batch,
+                "qty": new_qty,
+                "rate": new_rate,
+                "discount": new_disc,
+                "gst": new_gst,
+                "amount": new_amount,
+                "grand_total": 0.0
+            })
+        new_grand = round(sum(x["amount"] for x in updated_items), 2)
+        st.subheader(f"Updated Grand Total: ₹ {new_grand:.2f}")
+        csave, ccancel = st.columns([1,1])
+        with csave:
+            if st.button("Save Edited Challan", key=f"save_edit_{edit_no}"):
+                challans_df = challans_df[challans_df["challan_no"] != edit_no]
+                for r in updated_items:
+                    r["grand_total"] = new_grand
+                challans_df = pd.concat([challans_df, pd.DataFrame(updated_items)], ignore_index=True)
+                save_challans(challans_df)
+                st.success("Challan updated.")
+                del st.session_state["_edit_challan"]
+                try:
+                    st.rerun()
+                except:
+                    pass
+        with ccancel:
+            if st.button("Cancel Edit", key=f"cancel_edit_{edit_no}"):
+                del st.session_state["_edit_challan"]
+                try:
+                    st.rerun()
+                except:
+                    pass
 
 elif st.session_state.current_tab == "💊 Medicines":
     st.header("📦 Medicines Inventory (batch-level)")
