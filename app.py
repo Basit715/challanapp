@@ -1465,6 +1465,8 @@ elif st.session_state.current_tab == "🧾 Billing":
                     "note": f"Billed from {len(challan_selected)} challans"
                 }
                 challans_df = load_challans()
+                challans_df['challan_no'] = challans_df['challan_no'].astype(str)
+                challan_selected = str(challan_selected)
                 challans_df.loc[challans_df['challan_no'] == challan_selected,'billed'] = True
                 save_challans(challans_df)
 
