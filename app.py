@@ -782,30 +782,7 @@ if st.session_state.current_tab == "📋 Challans":
                 save_challans(challans_df)
                 save_medicines(med_df)
                 st.success(f"Challan {challan_no} saved. Grand total ₹ {grand_total:.2f}")
-                try:
-            # Compute new next challan number safely
-                    existing = challans_df["challan_no"].dropna().unique().tolist() if not challans_df.empty else []
-                    if existing:
-                        new_challan_no = int(max(existing)) + 1
-                    else:
-                        new_challan_no = 1
-                except:
-                    new_challan_no = 1
-        
-                st.session_state["new_challan_no"] = new_challan_no
-                st.session_state["new_date"] = date.today()
-                st.session_state["new_num_items"] = 1
-        
-                # Reset all dynamic item fields safely
-                for i in range(int(num_items)):
-                    for field in ["sel_med", "sel_batch", "item_name", "qty", "mrp", "rate", "gst", "disc"]:
-                        key = f"{field}_{challan_no}_{i}"
-                        if key in st.session_state:
-                            if field in ["qty", "mrp", "rate", "gst", "disc"]:
-                                st.session_state[key] = 0.0
-                            else:
-                                st.session_state[key] = ""
-
+                
                 # reload data
                 challans_df = load_challans()
                 med_df = load_medicines()
