@@ -795,78 +795,78 @@ if st.session_state.current_tab == "📋 Challans":
                     except:
                         pass
 
-    with col2:
-        st.subheader("Saved Challans")
-        if challans_df.empty:
-            st.info("No challans yet.")
-        else:
-            # unique challans
-            unique_ch = sorted(challans_df["challan_no"].unique().tolist(), reverse=True)
-            search = st.text_input("Search party or item (partial)", key="search_ch")
-            filtered = []
-            for ch in unique_ch:
-                chdf = challans_df[challans_df["challan_no"]==ch]
-                if search:
-                    if chdf["party"].astype(str).str.contains(search, case=False, na=False).any() or chdf["item"].astype(str).str.contains(search, case=False, na=False).any():
+        with col2:
+            st.subheader("Saved Challans")
+            if challans_df.empty:
+                st.info("No challans yet.")
+            else:
+                # unique challans
+                unique_ch = sorted(challans_df["challan_no"].unique().tolist(), reverse=True)
+                search = st.text_input("Search party or item (partial)", key="search_ch")
+                filtered = []
+                for ch in unique_ch:
+                    chdf = challans_df[challans_df["challan_no"]==ch]
+                    if search:
+                        if chdf["party"].astype(str).str.contains(search, case=False, na=False).any() or chdf["item"].astype(str).str.contains(search, case=False, na=False).any():
+                            filtered.append(ch)
+                    else:
                         filtered.append(ch)
-                else:
-                    filtered.append(ch)
-            for ch in filtered:
-                chdf = challans_df[challans_df["challan_no"]==ch].copy()
-                if chdf.empty:
-                    continue
-                party = chdf.iloc[0]["party"]
-                date_str = chdf.iloc[0]["date"]
-                grand = float(chdf.iloc[0].get("grand_total", chdf["amount"].sum()))
-                with st.expander(f"Challan {ch} — {party} — {date_str} — Grand ₹{grand:.2f}", expanded=False):
-                    st.write(f"Party: **{party}** &nbsp;&nbsp; Date: **{date_str}**")
-                    st.dataframe(chdf[["item","batch","qty","rate","discount","gst","amount"]].reset_index(drop=True))
-                    # Download PDF
-                    pdf_bytes = challan_to_pdf_bytes(chdf)
-                    st.download_button("Download Challan (PDF)", data=pdf_bytes, file_name=f"challan_{ch}.pdf", mime="application/pdf", key=f"dlpdf_{ch}")
-                    msg_lines = []
-                    msg_lines.append(f"challan {ch} | Date: {date_str}")
-                    msg_lines.append(f"Party: {party}")
-                    msg_lines.append("")
-                    for _,row in chdf.iterrows():
-                        item = str(row.get("item",""))
-                        batch = str(row.get("batch",""))
-                        qty = row.get("qty",0)
-                        rate = row.get("rate",0)
-                        amt = row.get("amount",0)
-                        msg_lines.append(f"{item} | Batch:{batch} | Qty: {qty} | Rate:{rate} | Amt: {amt}")
+                for ch in filtered:
+                    chdf = challans_df[challans_df["challan_no"]==ch].copy()
+                    if chdf.empty:
+                        continue
+                    party = chdf.iloc[0]["party"]
+                    date_str = chdf.iloc[0]["date"]
+                    grand = float(chdf.iloc[0].get("grand_total", chdf["amount"].sum()))
+                    with st.expander(f"Challan {ch} — {party} — {date_str} — Grand ₹{grand:.2f}", expanded=False):
+                        st.write(f"Party: **{party}** &nbsp;&nbsp; Date: **{date_str}**")
+                        st.dataframe(chdf[["item","batch","qty","rate","discount","gst","amount"]].reset_index(drop=True))
+                        # Download PDF
+                        pdf_bytes = challan_to_pdf_bytes(chdf)
+                        st.download_button("Download Challan (PDF)", data=pdf_bytes, file_name=f"challan_{ch}.pdf", mime="application/pdf", key=f"dlpdf_{ch}")
+                        msg_lines = []
+                        msg_lines.append(f"challan {ch} | Date: {date_str}")
+                        msg_lines.append(f"Party: {party}")
                         msg_lines.append("")
-                        msg_lines.append(f"Grand Total: Rs {grand:.2f}")
-                        msg_lines.append("")
-                        msg_lines.append("Please find challan attached. - New pharmaways")
-                        message_text = "\n".join(msg_lines)
-                        encoded = quote_plus(message_text)
-
-                        if wa_default_number and wa_default_number.strip():
-                            wa_link = f"https://wa.me/{wa_default_number.strip()}?text={encoded}"
-                        else:
-                            wa_link = f"https://wa.me/?text={encoded}"
-                        st.markdown("**WhatsApp message preview**")
-                        st.code(message_text)
-                        st.markdown(f'<a href="{wa_link}" target="_blank>Send via Whatsapp</a>"')
-                    c1,c2,c3 = st.columns([1,1,1])
-                    with c1:
-                        if st.button("Edit Challan", key=f"edit_ch_{ch}"):
-                            st.session_state["_edit_challan"] = ch
-                            try:
-                                st.rerun()
-                            except:
-                                pass
-                    with c2:
-                        if st.button("Delete Challan", key=f"del_ch_{ch}"):
-                            # delete all rows with this challan
-                            challans_df = challans_df[challans_df["challan_no"] != ch]
-                            save_challans(challans_df)
-                            st.success(f"Deleted challan {ch}")
-                            try:
-                                st.rerun()
-                            except:
-                                pass
+                        for _,row in chdf.iterrows():
+                            item = str(row.get("item",""))
+                            batch = str(row.get("batch",""))
+                            qty = row.get("qty",0)
+                            rate = row.get("rate",0)
+                            amt = row.get("amount",0)
+                            msg_lines.append(f"{item} | Batch:{batch} | Qty: {qty} | Rate:{rate} | Amt: {amt}")
+                            msg_lines.append("")
+                            msg_lines.append(f"Grand Total: Rs {grand:.2f}")
+                            msg_lines.append("")
+                            msg_lines.append("Please find challan attached. - New pharmaways")
+                            message_text = "\n".join(msg_lines)
+                            encoded = quote_plus(message_text)
+    
+                            if wa_default_number and wa_default_number.strip():
+                                wa_link = f"https://wa.me/{wa_default_number.strip()}?text={encoded}"
+                            else:
+                                wa_link = f"https://wa.me/?text={encoded}"
+                            st.markdown("**WhatsApp message preview**")
+                            st.code(message_text)
+                            st.markdown(f'<a href="{wa_link}" target="_blank>Send via Whatsapp</a>"')
+                        c1,c2,c3 = st.columns([1,1,1])
+                        with c1:
+                            if st.button("Edit Challan", key=f"edit_ch_{ch}"):
+                                st.session_state["_edit_challan"] = ch
+                                try:
+                                    st.rerun()
+                                except:
+                                    pass
+                        with c2:
+                            if st.button("Delete Challan", key=f"del_ch_{ch}"):
+                                # delete all rows with this challan
+                                challans_df = challans_df[challans_df["challan_no"] != ch]
+                                save_challans(challans_df)
+                                st.success(f"Deleted challan {ch}")
+                                try:
+                                    st.rerun()
+                                except:
+                                    pass
                     with c3:
                         # export summary CSV as well
                         agg = pd.DataFrame([{
