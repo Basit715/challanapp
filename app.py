@@ -795,7 +795,7 @@ if st.session_state.current_tab == "📋 Challans":
                     except:
                         pass
 
-    with col2:
+with col2:
         st.subheader("Saved Challans")
         if challans_df.empty:
             st.info("No challans yet.")
