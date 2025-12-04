@@ -631,16 +631,9 @@ for i, (title, subtitle) in enumerate(tabs):
 if st.session_state.current_tab == "📋 Challans":
     
 
-    # --- Load your dataframes here ---
-    # Replace these with your actual loading functions
-    # challans_df = load_challans()
-    # med_df = load_medicines()
-    # ledger_df = load_ledgers()
-
-    # For demo, create example dataframes
     
 
-# --- Example / placeholder data ---
+# --- Example data (replace with your actual loading functions) ---
     if "challans_df" not in st.session_state:
         st.session_state.challans_df = pd.DataFrame(columns=[
             "challan_no", "date", "party", "item", "batch",
@@ -701,7 +694,9 @@ if st.session_state.current_tab == "📋 Challans":
     
         grid_data = st.session_state.grid_data.copy()
     
-        # --- Ensure safe types and fill NaN ---
+        # --- SAFE DataFrame for AgGrid ---
+        expected_cols = ["Item","Batch","Qty","MRP","Rate","Discount %","GST %","Amount"]
+        grid_data = grid_data[expected_cols]
         grid_data = grid_data.astype({
             "Item": str,
             "Batch": str,
@@ -711,25 +706,19 @@ if st.session_state.current_tab == "📋 Challans":
             "Discount %": float,
             "GST %": float,
             "Amount": float
-        }).fillna({
-            "Item": "",
-            "Batch": "",
-            "Qty": 0.0,
-            "MRP": 0.0,
-            "Rate": 0.0,
-            "Discount %": 0.0,
-            "GST %": DEFAULT_GST,
-            "Amount": 0.0
-        })
+        }).replace({np.nan: 0, None: ""}).reset_index(drop=True)
     
         # --- Configure AG Grid ---
         gb = GridOptionsBuilder.from_dataframe(grid_data)
         gb.configure_default_column(editable=True, resizable=True)
+    
+        # Dropdown editors
         gb.configure_column("Item", cellEditor="agSelectCellEditor",
                             cellEditorParams={"values": sorted(med_df["name"].dropna().unique().tolist())})
         gb.configure_column("Batch", cellEditor="agSelectCellEditor",
                             cellEditorParams={"values": sorted(med_df["batch"].dropna().unique().tolist())})
     
+        # JS code for Amount calculation
         js_code = JsCode("""
         function(params) {
             let qty = params.data.Qty || 0;
@@ -742,7 +731,6 @@ if st.session_state.current_tab == "📋 Challans":
         """)
         gb.configure_column("Amount", valueGetter=js_code, editable=False)
     
-        gb.configure_grid_options(domLayout='normal', rowHeight=35, animateRows=True)
         grid_options = gb.build()
     
         grid_response = AgGrid(
@@ -751,7 +739,7 @@ if st.session_state.current_tab == "📋 Challans":
             height=300,
             width="100%",
             update_mode="MODEL_CHANGED",
-            fit_columns_on_grid_load=False  # prevents JS serialization errors
+            fit_columns_on_grid_load=False
         )
     
         updated_df = pd.DataFrame(grid_response['data'])
@@ -803,8 +791,7 @@ if st.session_state.current_tab == "📋 Challans":
                     new_items.append(item_dict)
     
                 # Append to challans
-                new_df = pd.DataFrame(new_items)
-                st.session_state.challans_df = pd.concat([st.session_state.challans_df, new_df], ignore_index=True)
+                st.session_state.challans_df = pd.concat([st.session_state.challans_df, pd.DataFrame(new_items)], ignore_index=True)
                 st.session_state.med_df = med_df
     
                 # Reset grid
