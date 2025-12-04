@@ -638,20 +638,25 @@ if st.session_state.current_tab == "📋 Challans":
     # ledger_df = load_ledgers()
 
     # For demo, create example dataframes
+    
+
+# --- Example / placeholder data ---
     if "challans_df" not in st.session_state:
         st.session_state.challans_df = pd.DataFrame(columns=[
             "challan_no", "date", "party", "item", "batch",
             "qty", "rate", "mrp", "discount", "gst", "amount", "grand_total", "billed"
         ])
+    
     if "med_df" not in st.session_state:
         st.session_state.med_df = pd.DataFrame({
             "name": ["Paracetamol", "Ibuprofen", "Vitamin C"],
             "batch": ["B1", "B2", "B3"],
             "qty": [100, 50, 200],
-            "rate": [10, 20, 15],
-            "mrp": [12, 25, 18],
-            "gst": [5, 12, 5]
+            "rate": [10.0, 20.0, 15.0],
+            "mrp": [12.0, 25.0, 18.0],
+            "gst": [5.0, 12.0, 5.0]
         })
+    
     if "ledger_df" not in st.session_state:
         st.session_state.ledger_df = pd.DataFrame({"party": ["Party A", "Party B"]})
     
@@ -692,9 +697,30 @@ if st.session_state.current_tab == "📋 Challans":
                 "Discount %": 0.0,
                 "GST %": DEFAULT_GST,
                 "Amount": 0.0
-            } for _ in range(1)])  # Start with 1 empty row
+            } for _ in range(1)])
     
         grid_data = st.session_state.grid_data.copy()
+    
+        # --- Ensure safe types and fill NaN ---
+        grid_data = grid_data.astype({
+            "Item": str,
+            "Batch": str,
+            "Qty": float,
+            "MRP": float,
+            "Rate": float,
+            "Discount %": float,
+            "GST %": float,
+            "Amount": float
+        }).fillna({
+            "Item": "",
+            "Batch": "",
+            "Qty": 0.0,
+            "MRP": 0.0,
+            "Rate": 0.0,
+            "Discount %": 0.0,
+            "GST %": DEFAULT_GST,
+            "Amount": 0.0
+        })
     
         # --- Configure AG Grid ---
         gb = GridOptionsBuilder.from_dataframe(grid_data)
@@ -703,8 +729,7 @@ if st.session_state.current_tab == "📋 Challans":
                             cellEditorParams={"values": sorted(med_df["name"].dropna().unique().tolist())})
         gb.configure_column("Batch", cellEditor="agSelectCellEditor",
                             cellEditorParams={"values": sorted(med_df["batch"].dropna().unique().tolist())})
-        
-        # JS code to calculate amount per row dynamically
+    
         js_code = JsCode("""
         function(params) {
             let qty = params.data.Qty || 0;
@@ -726,15 +751,13 @@ if st.session_state.current_tab == "📋 Challans":
             height=300,
             width="100%",
             update_mode="MODEL_CHANGED",
-            fit_columns_on_grid_load=True
+            fit_columns_on_grid_load=False  # prevents JS serialization errors
         )
     
         updated_df = pd.DataFrame(grid_response['data'])
     
         # Compute grand total
-        def compute_amount(row):
-            return row['Qty'] * row['Rate'] * (1 - row['Discount %']/100) * (1 + row['GST %']/100)
-        updated_df['Amount'] = updated_df.apply(compute_amount, axis=1)
+        updated_df['Amount'] = updated_df.apply(lambda row: row['Qty']*row['Rate']*(1 - row['Discount %']/100)*(1 + row['GST %']/100), axis=1)
         grand_total = updated_df['Amount'].sum()
         st.subheader(f"Grand Total: ₹ {grand_total:.2f}")
     
@@ -743,7 +766,7 @@ if st.session_state.current_tab == "📋 Challans":
             if not party:
                 st.error("Enter party name.")
             else:
-                # Check stock availability
+                # Stock check
                 for _, it in updated_df.iterrows():
                     if it["Batch"]:
                         batch_row = med_df[(med_df["name"]==it["Item"]) & (med_df["batch"]==it["Batch"])]
@@ -753,7 +776,7 @@ if st.session_state.current_tab == "📋 Challans":
                                 st.error(f"Not enough stock for {it['Item']} batch {it['Batch']}. Available {available}, requested {it['Qty']}")
                                 st.stop()
     
-                # Apply changes: reduce stock and append challan rows
+                # Apply changes
                 new_items = []
                 for _, it in updated_df.iterrows():
                     item_dict = {
@@ -774,18 +797,17 @@ if st.session_state.current_tab == "📋 Challans":
                     # Reduce stock
                     if it["Batch"]:
                         idxs = med_df[(med_df["batch"]==it["Batch"]) & (med_df["name"]==it["Item"])].index
-                        if len(idxs)>0:
+                        if len(idxs) > 0:
                             midx = idxs[0]
                             med_df.at[midx,"qty"] = float(med_df.at[midx,"qty"]) - float(it["Qty"])
                     new_items.append(item_dict)
     
-                # Append to challans dataframe
+                # Append to challans
                 new_df = pd.DataFrame(new_items)
-                challans_df = pd.concat([challans_df, new_df], ignore_index=True)
-    
-                # Save back to session state
-                st.session_state.challans_df = challans_df
+                st.session_state.challans_df = pd.concat([st.session_state.challans_df, new_df], ignore_index=True)
                 st.session_state.med_df = med_df
+    
+                # Reset grid
                 st.session_state.grid_data = pd.DataFrame([{
                     "Item": "",
                     "Batch": "",
